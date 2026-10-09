@@ -7,6 +7,7 @@ namespace ir_builder
   namespace expression_recognition
   {
 
+
     std::optional<qg::VariableId> variableReference(const qg::QueryGraph &qg, qg::ExprId id)
     {
       const qg::Expression &expr = qg.expressions[id];

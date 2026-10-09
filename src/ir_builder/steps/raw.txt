@@ -1,0 +1,811 @@
+namespace qg = query_graph;
+namespace cmn = common;
+
+class SharedBlockEdgeGraphBuilder
+{
+private:
+  struct RawAdjacency
+  {
+    cmn::Adjacency type;
+    size_t other;
+  };
+
+  /**
+   * Information about one occurrence of a shared block in one query.
+   *
+   * relationship_indices[k] corresponds to SharedBlockIR::EIdx{k}.
+   *
+   * Therefore the order in:
+   *
+   *   SharedBlock::patternRelationshipIDs
+   *
+   * is significant. Two occurrences using the same BlockId should list
+   * corresponding relationships in the same order.
+   */
+  struct BlockOccurrence
+  {
+    qg::BlockId block_id;
+
+    std::vector<size_t> relationship_indices;
+
+    // Index into relationship_indices.
+    size_t boundary_local_index;
+
+    // Index into QueryGraph::patternRelationships.
+    size_t boundary_relationship_index;
+  };
+
+  /**
+   * Canonical description used only to validate that two occurrences with
+   * the same BlockId actually describe the same shared block.
+   */
+  struct BlockShape
+  {
+    // Indexed by block-local EIdx.
+    std::vector<int64_t> predicate_ids;
+
+    // Directed edges:
+    //
+    //   (from local EIdx, to local EIdx, adjacency type)
+    //
+    // Sorted canonically.
+    std::vector<std::tuple<size_t, size_t, int>> edges;
+
+    size_t boundary_local_index;
+
+    bool operator==(const BlockShape &) const = default;
+  };
+
+  using SignatureLayers =
+      std::vector<
+          std::unordered_map<GlobalRelId, PredicateId>>;
+
+  const SignatureLayers &signatures_;
+
+  std::unordered_map<qg::BlockId, SharedBlockIR>
+      shared_block_registry_;
+
+  std::unordered_map<qg::BlockId, BlockShape>
+      registered_shapes_;
+
+public:
+  explicit SharedBlockEdgeGraphBuilder(
+      const SignatureLayers &signatures)
+      : signatures_{signatures}
+  {
+    if (signatures_.empty())
+    {
+      throw std::runtime_error(
+          "SharedBlockEdgeGraphBuilder requires layer-0 signatures");
+    }
+  }
+
+private:
+  static cmn::Adjacency reverseAdjacency(
+      cmn::Adjacency adjacency)
+  {
+    switch (adjacency)
+    {
+    case cmn::Adjacency::StartStart:
+      return cmn::Adjacency::StartStart;
+
+    case cmn::Adjacency::StartEnd:
+      return cmn::Adjacency::EndStart;
+
+    case cmn::Adjacency::EndStart:
+      return cmn::Adjacency::StartEnd;
+
+    case cmn::Adjacency::EndEnd:
+      return cmn::Adjacency::EndEnd;
+    }
+
+    std::unreachable();
+  }
+
+  [[noreturn]]
+  static void fail(const std::string &message)
+  {
+    throw std::runtime_error(
+        "SharedBlockEdgeGraphBuilder: " + message);
+  }
+
+  /**
+   * Construct the PatternRelationshipIR for every relationship in this query.
+   *
+   * IMPORTANT:
+   *
+   * Use PatternRelationshipInternal::localStartNode/localEndNode rather than
+   * qrel.startNode/qrel.endNode.
+   *
+   * Earlier canonicalization normalized incoming relationships so that
+   * Start/End have their relationship-direction meaning. The edge graph must
+   * use the exact same interpretation.
+   */
+  std::vector<PatternRelationshipIR> buildRelationshipIRs(
+      const qg::QueryGraph &queryGraph,
+      size_t qi,
+      const GlobalEntities &ge) const
+  {
+    std::vector<PatternRelationshipIR> result;
+
+    result.reserve(
+        queryGraph.patternRelationships.size());
+
+    const auto &local_to_global =
+        ge.queryLocalToGlobals.at(qi);
+
+    for (const auto &qrel :
+         queryGraph.patternRelationships)
+    {
+      GlobalRelId global_rel_id =
+          local_to_global.rel_to_globalID.at(
+              qrel.variable);
+
+      const auto &internal =
+          ge.relationships.at(global_rel_id);
+
+      result.push_back(
+          PatternRelationshipIR{
+              .global_rel_id = global_rel_id,
+              .lv = qrel.variable,
+
+              // Use the normalized endpoints.
+              .start = internal.localStartNode,
+              .end = internal.localEndNode,
+
+              // Ordinary query matching can use the strongest
+              // whole-query signature.
+              .signatureId = internal.signatureId,
+          });
+    }
+
+    return result;
+  }
+
+  /**
+   * Build the complete ordinary edge graph before any shared blocks are
+   * collapsed.
+   */
+  std::vector<std::vector<RawAdjacency>>
+  buildRawAdjacency(
+      const std::vector<PatternRelationshipIR> &qrels) const
+  {
+    std::vector<std::vector<RawAdjacency>>
+        adj(qrels.size());
+
+    auto add =
+        [&](size_t a,
+            size_t b,
+            cmn::Adjacency type)
+    {
+      adj[a].push_back(
+          RawAdjacency{
+              .type = type,
+              .other = b,
+          });
+
+      adj[b].push_back(
+          RawAdjacency{
+              .type = reverseAdjacency(type),
+              .other = a,
+          });
+    };
+
+    for (size_t i = 0; i < qrels.size(); ++i)
+    {
+      for (size_t j = i + 1;
+           j < qrels.size();
+           ++j)
+      {
+        const auto &a = qrels[i];
+        const auto &b = qrels[j];
+
+        if (a.start == b.start)
+          add(
+              i,
+              j,
+              cmn::Adjacency::StartStart);
+
+        if (a.start == b.end)
+          add(
+              i,
+              j,
+              cmn::Adjacency::StartEnd);
+
+        if (a.end == b.start)
+          add(
+              i,
+              j,
+              cmn::Adjacency::EndStart);
+
+        if (a.end == b.end)
+          add(
+              i,
+              j,
+              cmn::Adjacency::EndEnd);
+      }
+    }
+
+    return adj;
+  }
+
+  /**
+   * Resolve user-provided SharedBlock annotations into indices into
+   * QueryGraph::patternRelationships.
+   *
+   * Also validates:
+   *
+   * - every relationship exists;
+   * - no relationship is in two block occurrences;
+   * - no relationship occurs twice inside one block annotation;
+   * - block is connected;
+   * - exactly one relationship in the block touches the rest of the graph.
+   */
+  std::vector<BlockOccurrence> analyseBlocks(
+      const qg::QueryGraph &queryGraph,
+      const std::vector<std::vector<RawAdjacency>>
+          &raw_adj,
+      std::vector<int64_t> &block_of_relationship) const
+  {
+    const size_t n =
+        queryGraph.patternRelationships.size();
+
+    block_of_relationship.assign(n, -1);
+
+    std::unordered_map<qg::VariableId, size_t>
+        index_of;
+
+    for (size_t i = 0; i < n; ++i)
+    {
+      const auto [_, inserted] =
+          index_of.emplace(
+              queryGraph.patternRelationships[i].variable,
+              i);
+
+      if (!inserted)
+      {
+        fail(
+            "relationship VariableId occurs more than once "
+            "in QueryGraph");
+      }
+    }
+
+    std::vector<BlockOccurrence> occurrences;
+
+    for (const qg::SharedBlock &block :
+         queryGraph.sharedBlocks)
+    {
+      if (block.patternRelationshipIDs.empty())
+      {
+        fail("shared block contains no relationships");
+      }
+
+      const size_t occurrence_index =
+          occurrences.size();
+
+      std::vector<size_t> relationship_indices;
+      relationship_indices.reserve(
+          block.patternRelationshipIDs.size());
+
+      std::unordered_set<size_t> members;
+
+      for (qg::VariableId variable :
+           block.patternRelationshipIDs)
+      {
+        auto it = index_of.find(variable);
+
+        if (it == index_of.end())
+        {
+          fail(
+              "shared block references relationship not "
+              "present in the query graph");
+        }
+
+        size_t qrel_index = it->second;
+
+        if (!members.insert(qrel_index).second)
+        {
+          fail(
+              "same relationship occurs twice inside one "
+              "shared block annotation");
+        }
+
+        if (block_of_relationship[qrel_index] != -1)
+        {
+          fail(
+              "one query relationship belongs to more than "
+              "one shared block");
+        }
+
+        block_of_relationship[qrel_index] =
+            static_cast<int64_t>(
+                occurrence_index);
+
+        relationship_indices.push_back(
+            qrel_index);
+      }
+
+      // -------------------------------------------------------
+      // Find the singular boundary relationship.
+      //
+      // A block relationship is a boundary candidate iff it has
+      // at least one edge-graph neighbor outside the block.
+      // -------------------------------------------------------
+
+      std::vector<size_t> boundary_candidates;
+
+      for (size_t qrel_index :
+           relationship_indices)
+      {
+        bool touches_outside = false;
+
+        for (const RawAdjacency &edge :
+             raw_adj[qrel_index])
+        {
+          if (!members.contains(edge.other))
+          {
+            touches_outside = true;
+            break;
+          }
+        }
+
+        if (touches_outside)
+        {
+          boundary_candidates.push_back(
+              qrel_index);
+        }
+      }
+
+      if (boundary_candidates.size() != 1)
+      {
+        fail(
+            "shared block must have exactly one relationship "
+            "which touches the rest of the query; found " +
+            std::to_string(
+                boundary_candidates.size()));
+      }
+
+      size_t boundary_relationship_index =
+          boundary_candidates.front();
+
+      size_t boundary_local_index =
+          std::find(
+              relationship_indices.begin(),
+              relationship_indices.end(),
+              boundary_relationship_index)
+          -
+          relationship_indices.begin();
+
+      // -------------------------------------------------------
+      // Check that the induced shared block is connected.
+      // -------------------------------------------------------
+
+      std::unordered_set<size_t> visited;
+      std::vector<size_t> stack{
+          boundary_relationship_index};
+
+      while (!stack.empty())
+      {
+        size_t current = stack.back();
+        stack.pop_back();
+
+        if (!visited.insert(current).second)
+          continue;
+
+        for (const RawAdjacency &edge :
+             raw_adj[current])
+        {
+          if (members.contains(edge.other))
+          {
+            stack.push_back(edge.other);
+          }
+        }
+      }
+
+      if (visited.size() != members.size())
+      {
+        fail(
+            "relationships inside a shared block do not form "
+            "a connected edge graph");
+      }
+
+      occurrences.push_back(
+          BlockOccurrence{
+              .block_id = block.block_id,
+              .relationship_indices =
+                  std::move(relationship_indices),
+              .boundary_local_index =
+                  boundary_local_index,
+              .boundary_relationship_index =
+                  boundary_relationship_index,
+          });
+    }
+
+    return occurrences;
+  }
+
+  /**
+   * Build the context-independent description of one block occurrence.
+   *
+   * patternRelationshipIDs[k] corresponds to local EIdx{k}.
+   */
+  std::pair<SharedBlockIR, BlockShape>
+  makeSharedBlockIR(
+      const BlockOccurrence &occurrence,
+      const std::vector<PatternRelationshipIR> &qrels,
+      const std::vector<std::vector<RawAdjacency>>
+          &raw_adj) const
+  {
+    const size_t n =
+        occurrence.relationship_indices.size();
+
+    std::unordered_map<size_t, size_t>
+        qrel_to_local;
+
+    for (size_t local = 0; local < n; ++local)
+    {
+      qrel_to_local.emplace(
+          occurrence.relationship_indices[local],
+          local);
+    }
+
+    std::vector<PredicateId> nodes;
+    nodes.reserve(n);
+
+    BlockShape shape;
+    shape.boundary_local_index =
+        occurrence.boundary_local_index;
+
+    shape.predicate_ids.reserve(n);
+
+    // ---------------------------------------------------------
+    // IMPORTANT:
+    //
+    // SharedBlockIR must not use the final context-sensitive
+    // signature. Use layer 0: predicates directly belonging to
+    // this relationship/endpoints.
+    //
+    // The block EdgeGraph itself captures internal structure.
+    // ---------------------------------------------------------
+
+    for (size_t local = 0; local < n; ++local)
+    {
+      size_t qrel_index =
+          occurrence.relationship_indices[local];
+
+      GlobalRelId global_rel_id =
+          qrels[qrel_index].global_rel_id;
+
+      PredicateId base_predicate =
+          signatures_.at(0).at(
+              global_rel_id);
+
+      nodes.push_back(base_predicate);
+      shape.predicate_ids.push_back(
+          base_predicate.val);
+    }
+
+    std::vector<std::vector<cmn::EGraphAdjacency>>
+        adj(n);
+
+    for (size_t local = 0; local < n; ++local)
+    {
+      size_t qrel_index =
+          occurrence.relationship_indices[local];
+
+      for (const RawAdjacency &edge :
+           raw_adj[qrel_index])
+      {
+        auto neighbor_it =
+            qrel_to_local.find(edge.other);
+
+        if (neighbor_it ==
+            qrel_to_local.end())
+        {
+          // Outside the block.
+          continue;
+        }
+
+        size_t neighbor_local =
+            neighbor_it->second;
+
+        adj[local].push_back(
+            cmn::EGraphAdjacency{
+                edge.type,
+                neighbor_local,
+            });
+
+        shape.edges.emplace_back(
+            local,
+            neighbor_local,
+            static_cast<int>(edge.type));
+      }
+    }
+
+    std::sort(
+        shape.edges.begin(),
+        shape.edges.end());
+
+    SharedBlockIR result{
+        .block_id = occurrence.block_id,
+        .edge_graph =
+            SharedBlockIR::EdgeGraph{
+                std::move(nodes),
+                std::move(adj),
+            },
+        .boundary_node =
+            SharedBlockIR::EIdx{
+                occurrence.boundary_local_index},
+    };
+
+    return {
+        std::move(result),
+        std::move(shape)};
+  }
+
+  /**
+   * Register the first occurrence of a BlockId.
+   *
+   * Later occurrences must have:
+   *
+   * - same local predicate at every local EIdx;
+   * - same edge structure;
+   * - same boundary EIdx.
+   *
+   * The user therefore uses patternRelationshipIDs ordering to establish the
+   * correspondence between occurrences.
+   */
+  void registerOrValidateBlock(
+      const BlockOccurrence &occurrence,
+      const std::vector<PatternRelationshipIR> &qrels,
+      const std::vector<std::vector<RawAdjacency>>
+          &raw_adj)
+  {
+    auto [block_ir, shape] =
+        makeSharedBlockIR(
+            occurrence,
+            qrels,
+            raw_adj);
+
+    auto shape_it =
+        registered_shapes_.find(
+            occurrence.block_id);
+
+    if (shape_it ==
+        registered_shapes_.end())
+    {
+      registered_shapes_.emplace(
+          occurrence.block_id,
+          shape);
+
+      shared_block_registry_.emplace(
+          occurrence.block_id,
+          std::move(block_ir));
+
+      return;
+    }
+
+    if (!(shape_it->second == shape))
+    {
+      fail(
+          "two SharedBlock occurrences have the same BlockId "
+          "but different predicate/adjacency structure");
+    }
+  }
+
+  EdgeGraph buildEdgeGraph(
+      const qg::QueryGraph &queryGraph,
+      size_t qi,
+      GlobalEntities &ge)
+  {
+    // ---------------------------------------------------------
+    // 1. Build full, uncollapsed relationship edge graph.
+    // ---------------------------------------------------------
+
+    std::vector<PatternRelationshipIR> qrels =
+        buildRelationshipIRs(
+            queryGraph,
+            qi,
+            ge);
+
+    auto raw_adj =
+        buildRawAdjacency(qrels);
+
+    // ---------------------------------------------------------
+    // 2. Resolve and validate shared-block occurrences.
+    //
+    // block_of_relationship[i] =
+    //     occurrence index, or -1 if ordinary relationship.
+    // ---------------------------------------------------------
+
+    std::vector<int64_t>
+        block_of_relationship;
+
+    std::vector<BlockOccurrence> occurrences =
+        analyseBlocks(
+            queryGraph,
+            raw_adj,
+            block_of_relationship);
+
+    for (const BlockOccurrence &occurrence :
+         occurrences)
+    {
+      registerOrValidateBlock(
+          occurrence,
+          qrels,
+          raw_adj);
+    }
+
+    // ---------------------------------------------------------
+    // 3. Collapse each shared block occurrence into one outer
+    //    EdgeGraph node.
+    // ---------------------------------------------------------
+
+    std::vector<EdgeGraph::NodeType> nodes;
+
+    // Maps original qrel index -> collapsed outer EIdx.
+    std::vector<size_t> outer_index_of_relationship(
+        qrels.size());
+
+    std::vector<bool> occurrence_created(
+        occurrences.size(),
+        false);
+
+    for (size_t qrel_index = 0;
+         qrel_index < qrels.size();
+         ++qrel_index)
+    {
+      int64_t occurrence_id =
+          block_of_relationship[qrel_index];
+
+      // Ordinary relationship.
+      if (occurrence_id == -1)
+      {
+        size_t outer_index =
+            nodes.size();
+
+        nodes.push_back(
+            qrels[qrel_index]);
+
+        outer_index_of_relationship[qrel_index] =
+            outer_index;
+
+        continue;
+      }
+
+      size_t oi =
+          static_cast<size_t>(
+              occurrence_id);
+
+      // We already created the single SharedBlockReference
+      // representing this occurrence.
+      if (occurrence_created[oi])
+      {
+        continue;
+      }
+
+      occurrence_created[oi] = true;
+
+      const BlockOccurrence &occurrence =
+          occurrences[oi];
+
+      SharedBlockReference reference{
+          .block_id = occurrence.block_id,
+          .back_mapping = {},
+      };
+
+      reference.back_mapping.reserve(
+          occurrence.relationship_indices.size());
+
+      // back_mapping[k] corresponds exactly to
+      // SharedBlockIR::EIdx{k}.
+      for (size_t block_qrel_index :
+           occurrence.relationship_indices)
+      {
+        reference.back_mapping.push_back(
+            qrels[block_qrel_index]);
+      }
+
+      size_t outer_index =
+          nodes.size();
+
+      nodes.push_back(
+          std::move(reference));
+
+      // Every relationship inside this block occurrence collapses
+      // to the same outer EdgeGraph node.
+      for (size_t block_qrel_index :
+           occurrence.relationship_indices)
+      {
+        outer_index_of_relationship[
+            block_qrel_index] =
+            outer_index;
+      }
+    }
+
+    // ---------------------------------------------------------
+    // 4. Build adjacency of the collapsed quotient edge graph.
+    //
+    // Internal block edges disappear.
+    //
+    // Since analyseBlocks() guarantees that only the boundary
+    // relationship touches the outside, all surviving edges on a
+    // block reference are exactly the edges of its boundary
+    // relationship.
+    // ---------------------------------------------------------
+
+    std::vector<std::vector<cmn::EGraphAdjacency>>
+        adj(nodes.size());
+
+    for (size_t qrel_index = 0;
+         qrel_index < qrels.size();
+         ++qrel_index)
+    {
+      size_t outer_from =
+          outer_index_of_relationship[
+              qrel_index];
+
+      for (const RawAdjacency &edge :
+           raw_adj[qrel_index])
+      {
+        size_t outer_to =
+            outer_index_of_relationship[
+                edge.other];
+
+        // Internal to the same collapsed shared block.
+        if (outer_from == outer_to)
+        {
+          continue;
+        }
+
+        adj[outer_from].push_back(
+            cmn::EGraphAdjacency{
+                edge.type,
+                outer_to,
+            });
+      }
+    }
+
+    return EdgeGraph{
+        std::move(nodes),
+        std::move(adj)};
+  }
+
+public:
+  /**
+   * Builds:
+   *
+   * 1. one collapsed EdgeGraph per query;
+   * 2. the global context-independent SharedBlockIR registry.
+   */
+  std::pair<
+      std::vector<EdgeGraph>,
+      std::unordered_map<qg::BlockId, SharedBlockIR>>
+  build(
+      const std::vector<qg::QueryGraph> &queryGraphs,
+      GlobalEntities &ge)
+  {
+    shared_block_registry_.clear();
+    registered_shapes_.clear();
+
+    std::vector<EdgeGraph> edge_graphs;
+
+    edge_graphs.reserve(
+        queryGraphs.size());
+
+    for (size_t qi = 0;
+         qi < queryGraphs.size();
+         ++qi)
+    {
+      edge_graphs.push_back(
+          buildEdgeGraph(
+              queryGraphs[qi],
+              qi,
+              ge));
+    }
+
+    return {
+        std::move(edge_graphs),
+        std::move(shared_block_registry_)};
+  }
+};

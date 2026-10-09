@@ -15,7 +15,6 @@ namespace execution
     std::vector<size_t> order = helpers::chooseRelationshipOrder(qg, candidateSets_, qadj);
 
     QueryExecutionResult result;
-
     for (size_t i : order)
     {
       result.matchingOrder.push_back(qrels[i].lv_global);

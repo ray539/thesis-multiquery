@@ -35,47 +35,7 @@ namespace execution
       return candidateSets;
     }
 
-    /**
-     * execution step2: build adjacency list based on QueryGraphIR
-     * - we treat each relationship as a 'node'
-     * - the edges can then be annotated with 4 types of adjacency, as given by `Adjacency`
-     */
-    std::vector<std::vector<QAdjacency>> buildQueryAdjacency(const ir::QueryGraphIR &qg)
-    {
-      const auto &qrels = qg.patternRelationships;
-      std::vector<std::vector<QAdjacency>> adj(qrels.size());
 
-      /**
-       * add an edge in
-       */
-      auto add = [&](size_t a, size_t b, cmn::Adjacency type)
-      {
-        adj[a].push_back(QAdjacency{b, type});
-        adj[b].push_back(QAdjacency{a, reverseAdjacency(type)});
-      };
-
-      // construct adjacency list by inspecting all (unordered) pairs
-      for (size_t i = 0; i < qrels.size(); ++i)
-      {
-        for (size_t j = i + 1; j < qrels.size(); ++j)
-        {
-          const auto &a = qrels[i];
-          const auto &b = qrels[j];
-
-          // we are only comparing 2 nodes from the same query graph, so
-          // we don't need global ids
-          if (a.startNode == b.startNode)
-            add(i, j, cmn::Adjacency::StartStart);
-          if (a.startNode == b.endNode)
-            add(i, j, cmn::Adjacency::StartEnd);
-          if (a.endNode == b.startNode)
-            add(i, j, cmn::Adjacency::EndStart);
-          if (a.endNode == b.endNode)
-            add(i, j, cmn::Adjacency::EndEnd);
-        }
-      }
-      return adj;
-    }
 
     /**
      *  execution step 3: choose order we should traverse relationships in

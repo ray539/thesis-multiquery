@@ -90,7 +90,7 @@ namespace execution
 
     // LHS: expanded adjacency requirements, where each multiplicity becomes a node
     // - adjreq(adjacency, pred): req0, req1, req2 ..
-    // RHS: data relationships adjacent
+    // RHS: data relationships adjacent to drel
     // - drels                    d0, d2, d3, d4 ...
     // options[ri]: drel[], list of drels which satisfy (adjacency, pred) of a req{ri}
     // - in bipartite graph, options[ri] containing dj means path from req{i} to d{j}

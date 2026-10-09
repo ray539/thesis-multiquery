@@ -2,31 +2,7 @@
 #include <bits/stdc++.h>
 #include <common/Common.hpp>
 
-namespace kernel
-{
-  struct DNodeId
-  {
-    int64_t val;
-    explicit DNodeId(int64_t val) : val{val} {}
-    bool operator==(const DNodeId &) const = default;
-  };
 
-  struct DRelId
-  {
-    int64_t val;
-    explicit DRelId(int64_t val) : val{val} {}
-    bool operator==(const DRelId &) const = default;
-  };
-}
-
-template <>
-struct std::hash<kernel::DNodeId>
-{
-  size_t operator()(const kernel::DNodeId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
 
 template <>
 struct std::hash<kernel::DRelId>

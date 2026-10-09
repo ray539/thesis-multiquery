@@ -2,9 +2,8 @@
 #include <common/IRBuilder.hpp>
 #include <bits/stdc++.h>
 
-
-namespace ir_builder {
-
+namespace ir_builder
+{
 
   struct PatternRelationshipInternal
   {
@@ -36,7 +35,8 @@ namespace ir_builder {
     std::unordered_map<query_graph::VariableId, GlobalRelId> rel_to_globalID;
   };
 
-  struct GlobalEntities {
+  struct GlobalEntities
+  {
     // queryStates[qi] gives the local to global mapping information for query qi
     std::vector<QueryLocalToGlobal> queryLocalToGlobals;
 
@@ -49,25 +49,97 @@ namespace ir_builder {
 
   inline GlobalEntities buildGlobalEntities(const std::vector<query_graph::QueryGraph> &queryGraphs);
 
+  /**
+   * collect all predicates in all the query graphs given and place them in `ge.relationships`
+   */
   inline void collectPredicates(
-    const std::vector<query_graph::QueryGraph> queryGraphs,
-    GlobalEntities& ge
-  );
-
+      const std::vector<query_graph::QueryGraph> queryGraphs,
+      GlobalEntities &ge);
 
   struct SignatureBuilderResult
   {
-    // signatures[level][global id of relationship] = signature for that relationship 
+    // signatures[level][global id of relationship] = signature for that relationship
     std::vector<std::unordered_map<GlobalRelId, PredicateId>> signatures;
     // map of predId -> RelPredicate
     PredicateRegistry pRegistry;
   };
 
-  
   inline SignatureBuilderResult buildAndInternSignatures(
       const std::vector<query_graph::QueryGraph> &queryGraphs,
       GlobalEntities &ge,
       int maxLayers);
 
+  namespace edge_graph_helpers
+  {
+
+    /**
+     *
+     * Intermediate representation of SharedBlockIR, to be turned into one
+     */
+    struct BlockOccurrence
+    {
+      query_graph::BlockId block_id;
+      // outer edge graph indices
+      std::vector<raw::EIdx> relationship_indices;
+
+      // Index into relationship_indices.
+      size_t boundary_local_index;
+      // Index into QueryGraph::patternRelationships.
+      raw::EIdx boundary_relationship_index;
+    };
+
+    /**
+     * Canonical description used only to validate that two occurrences with
+     * the same BlockId actually describe the same shared block.
+     */
+    struct BlockShape
+    {
+      // Indexed by block-local EIdx.
+      std::vector<PredicateId> predicate_ids;
+      // Directed edges:
+      //   (from local EIdx, to local EIdx, adjacency type)
+      // Sorted canonically.
+      std::vector<std::tuple<SharedBlockIR::EIdx, SharedBlockIR::EIdx, int>> edges;
+      SharedBlockIR::EIdx boundary_local_index;
+
+
+
+      bool operator==(const BlockShape &) const = default;
+    };
+
+
+
+    /**
+     * build the edge graph before collapsing shared blocks
+     */
+    raw::EdgeGraphRaw buildRawEdgeGraph(
+        const query_graph::QueryGraph &queryGraph,
+        QueryLocalToGlobal &local_to_global,
+        std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships);
+
+    /**
+     * Resolve user-provided SharedBlock annotations into indices into the EdgeGraph
+     *
+     * return
+     * - BlockOcurrences: BlockId -> BlockOccurrence, an occurrence of a shared block. Many of these can be the same
+     *   the objct itself only just contains indices into the edge graph. Next step will create the shared blocks themselves.
+     * - block_of_relationship EIdx -> occurence_id: edge graph index to block id
+     */
+    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, size_t>> analyseBlocks(
+        const qg::QueryGraph &queryGraph,
+        raw::EdgeGraphRaw &raw_adj);
+
+    /**
+    * turn an `BlockOccurrence` to an `SharedBlockIR`. 
+    * return
+    * - `SharedBlockIR`: final IR form of a shared block
+    * - `BlockShape`: shape of the block. Can be used to determine whether it is equal to another SharedBlockIR
+    */
+    std::pair<SharedBlockIR, BlockShape> makeSharedBlockIR(
+        const BlockOccurrence &occurrence,
+        const raw::EdgeGraphRaw &edge_graph_raw,
+        const std::unordered_map<GlobalRelId, PredicateId> &signatures);
+
+  } // namespace edge_graph_helpers
 
 }

@@ -10,9 +10,11 @@ namespace ir_builder
     using std::runtime_error::runtime_error;
   };
 
-  struct GlobalNodeId
+  class GlobalNodeId
   {
+  public:
     int64_t val;
+    GlobalNodeId() = default;
     explicit GlobalNodeId(int64_t val) : val{val} {}
     bool operator==(const GlobalNodeId &other) const
     {
@@ -20,9 +22,11 @@ namespace ir_builder
     }
   };
 
-  struct GlobalRelId
+  class GlobalRelId
   {
+  public:
     int64_t val;
+    GlobalRelId() = default;
     explicit GlobalRelId(int64_t val) : val{val} {}
     bool operator==(const GlobalRelId &other) const
     {
@@ -30,9 +34,11 @@ namespace ir_builder
     }
   };
 
-  struct PredicateId
+  class PredicateId
   {
+  public:
     int64_t val;
+    PredicateId() = default;
     PredicateId(int64_t val) : val{val} {}
   };
 
@@ -63,11 +69,16 @@ namespace ir_builder
     std::string label;
   };
 
+  struct EndpointsEqual
+  {
+  };
+
   using AtomicRelPredicate = std::variant<
       RelPropertyEquals,
       RelTypeEquals,
       EndpointPropertyEquals,
-      EndpointHasLabel>;
+      EndpointHasLabel,
+      EndpointsEqual>;
 
   struct AdjacencyRequirement
   {
@@ -96,18 +107,116 @@ namespace ir_builder
   // ------------
   struct PatternRelationshipIR
   {
+    GlobalRelId global_rel_id; // for reference, but likely not useful
     query_graph::VariableId lv;
-    GlobalRelId lv_global;
-
-    query_graph::VariableId startNode;
-    query_graph::VariableId endNode;
+    query_graph::VariableId start;
+    query_graph::VariableId end;
     PredicateId signatureId;
   };
 
-  struct QueryGraphIR
+  /**
+   * edge graph template. There are 3 edge graphs our code deals with
+   * - SharedBlockIR::EdgeGraph, NodeType: PredicateID
+   * - RawEdgeGraph, NodeType: PatternRelationshipIR
+   * - EdgeGraph, NodeType: std::variant<...>
+   */
+  template <typename NodeType, typename EIdx>
+  class EdgeGraph
   {
-    std::vector<PatternRelationshipIR> patternRelationships;
+  public:
+    struct EGraphAdjacency
+    {
+      common::Adjacency adjType;
+      EIdx other;
+    };
+
+  private:
+    std::vector<NodeType> nodes_;
+    std::vector<std::vector<EGraphAdjacency>> adj_;
+
+  public:
+    EdgeGraph(std::vector<NodeType> nodes, std::vector<std::vector<EGraphAdjacency>> adj)
+        : nodes_(nodes),
+          adj_(adj)
+    {
+    }
+    NodeType node_at(EIdx eidx) const
+    {
+      return nodes_[eidx.val];
+    }
+
+    std::vector<EGraphAdjacency> adj(EIdx eidx) const
+    {
+      return adj_[eidx.val];
+    }
   };
+
+  /**
+   * shared block representation. Has it's own edge graph, which is indifferent to
+   * where it is.
+   *
+   * Needs a 'back_context' to localize back into an edge graph
+   */
+  struct SharedBlockIR
+  {
+
+    struct EIdx
+    {
+      size_t val;
+      EIdx() = default;
+      EIdx(size_t val) : val(val)
+      {
+      }
+      bool operator==(const EIdx&) const = default;
+    };
+    query_graph::BlockId block_id;
+
+    typedef EdgeGraph<PredicateId, EIdx> EdgeGraphSB;
+
+    EdgeGraph<PredicateId, EIdx> edge_graph;
+    EIdx boundary_node; // backtracking MUST start here
+  };
+
+  namespace raw
+  {
+    // raw query graph, before collapsing shared blocks
+    struct EIdx
+    {
+      size_t val;
+      EIdx(size_t val) : val(val)
+      {
+      }
+      bool operator==(const EIdx&) const = default;
+    };
+    typedef EdgeGraph<PatternRelationshipIR, EIdx> EdgeGraphRaw;
+  };
+
+  /**
+   * localized shared block for a specific EdgeGraph
+   */
+  struct SharedBlockReference
+  {
+    collapsed::EIdx boundary_node;
+    query_graph::BlockId block_id;
+    std::unordered_map<SharedBlockIR::EIdx, PatternRelationshipIR> back_mapping;
+  };
+
+  namespace collapsed
+  {
+    // collapsed query graph
+    struct EIdx
+    {
+      size_t val;
+      EIdx(size_t val) : val(val)
+      {
+      }
+      bool operator==(const EIdx&) const = default;
+    };
+    typedef std::variant<PatternRelationshipIR, SharedBlockReference> NodeType;
+    typedef EdgeGraph<std::variant<PatternRelationshipIR, SharedBlockReference>, EIdx> EdgeGraphCollapsed;
+  }
+
+
 
   // relId, endpoint
   struct Incidence
@@ -144,9 +253,9 @@ namespace ir_builder
   struct BuildResult
   {
     /**
-     * internal query graphs
+     * edges graphs ready for matching
      */
-    std::vector<QueryGraphIR> queryGraphs;
+    std::vector<collapsed::EdgeGraphCollapsed> edgeGraphs;
 
     /**
      * in a nutshell,  PredicateId -> RelPredicate
@@ -160,6 +269,12 @@ namespace ir_builder
     std::vector<
         std::unordered_map<GlobalRelId, PredicateId>>
         signatures;
+
+    /**
+     * a shared block is an context indifferent subgraph which can occur in
+     * multiple times in one query graph / multiple query graphs
+     */
+    std::unordered_map<query_graph::BlockId, SharedBlockIR> shared_block_registry;
   };
 
   class IRBuilder
@@ -173,7 +288,14 @@ namespace ir_builder
   {
     namespace qg = query_graph;
 
+    /**
+     * match `VariableReference(v:VariableId)`, returning `v`
+     */
     std::optional<qg::VariableId> variableReference(const qg::QueryGraph &qg, qg::ExprId id);
+
+    /**
+     * match `IntegerLiteral(val:int64_t)`, returning `val`
+     */
     std::optional<int64_t> intConstant(const qg::QueryGraph &qg, qg::ExprId id);
 
     struct ParsedPropertyAccess
@@ -181,6 +303,10 @@ namespace ir_builder
       qg::VariableId varId;
       std::string property;
     };
+
+    /**
+     * match `PropertyAccess(varId:VariableId, property:string)`, returning `varId, property`
+     */
     std::optional<ParsedPropertyAccess> propertyAccess(const qg::QueryGraph &qg, qg::ExprId id);
 
     struct ParsedHasLabel
@@ -188,6 +314,10 @@ namespace ir_builder
       qg::VariableId nodeId;
       std::string label;
     };
+
+    /**
+     * match `HasLabel(VariableReference(nodeId:VariableId), label:string)`, returning `nodeId, label`
+     */
     std::optional<ParsedHasLabel> hasLabel(const qg::QueryGraph &qg, qg::ExprId id);
 
     struct ParsedHasRelType
@@ -196,11 +326,12 @@ namespace ir_builder
       std::string relType;
     };
 
+    /**
+     * match `HasRelType(VariableReference(relId:VariableId), relType:string)`, returning `relId, relType`
+     */
     std::optional<ParsedHasRelType> hasRelType(const qg::QueryGraph &qg, qg::ExprId id);
-
   }
-
-}
+} // namespace ir_builder
 
 template <>
 struct std::hash<ir_builder::GlobalNodeId>
@@ -215,6 +346,33 @@ template <>
 struct std::hash<ir_builder::GlobalRelId>
 {
   std::size_t operator()(const ir_builder::GlobalRelId &id) const noexcept
+  {
+    return std::hash<int64_t>{}(id.val);
+  }
+};
+
+template <>
+struct std::hash<ir_builder::SharedBlockIR::EIdx>
+{
+  std::size_t operator()(const ir_builder::SharedBlockIR::EIdx &id) const noexcept
+  {
+    return std::hash<int64_t>{}(id.val);
+  }
+};
+
+template <>
+struct std::hash<ir_builder::raw::EIdx>
+{
+  std::size_t operator()(const ir_builder::raw::EIdx &id) const noexcept
+  {
+    return std::hash<int64_t>{}(id.val);
+  }
+};
+
+template <>
+struct std::hash<ir_builder::collapsed::EIdx>
+{
+  std::size_t operator()(const ir_builder::collapsed::EIdx &id) const noexcept
   {
     return std::hash<int64_t>{}(id.val);
   }

@@ -21,27 +21,32 @@ BuildResult IRBuilder::run(const std::vector<qg::QueryGraph> &queryGraphs, int m
   collectPredicates(queryGraphs, globalEntities);
   // phase 3
   // - build signatures
-
   // previous[relIdx] = predicate id for this relIdx
   auto [signatures, pRegistry] = buildAndInternSignatures(queryGraphs, globalEntities, maxLayer);
 
-  BuildResult buildResult{
-      .predicateRegistry = pRegistry,
-      .signatures = signatures};
-  // final query graphs
-  for (auto &[_, rel] : globalEntities.relationships)
-  {
-    buildResult
-        .queryGraphs[rel.queryIndex]
-        .patternRelationships
-        .push_back(
-            PatternRelationshipIR{
-                rel.localId,
-                rel.globalId,
-                rel.localStartNode,
-                rel.localEndNode,
-                rel.signatureId});
-  }
+
+  // phase 4
+  // - build the shared block registry and edge graphs
+
+
+
+  // BuildResult buildResult{
+  //     .predicateRegistry = pRegistry,
+  //     .signatures = signatures};
+  // // final query graphs
+  // for (auto &[_, rel] : globalEntities.relationships)
+  // {
+  //   buildResult
+  //       .queryGraphs[rel.queryIndex]
+  //       .patternRelationships
+  //       .push_back(
+  //           PatternRelationshipIR{
+  //               rel.localId,
+  //               rel.globalId,
+  //               rel.localStartNode,
+  //               rel.localEndNode,
+  //               rel.signatureId});
+  // }
   return buildResult;
 }
 

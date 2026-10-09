@@ -128,10 +128,8 @@ namespace execution
     // recursiveCallsAtDepth[k] = number of calls to dfs(k)
     // Size is |Q_E| + 1 because the terminal call is also recorded.
     std::vector<uint64_t> recursiveCallsAtDepth;
-
     // complete matches returned
     uint64_t completeMatches = 0;
-
     // product(|C(r)|) over query relationships.
     uint64_t candidateProduct = 1;
     /**

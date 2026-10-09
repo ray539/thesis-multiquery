@@ -1,0 +1,1 @@
+std::cout << "im gay" << std::endl;
