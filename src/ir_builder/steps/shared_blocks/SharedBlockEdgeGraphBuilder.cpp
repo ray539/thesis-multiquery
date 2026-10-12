@@ -9,12 +9,8 @@ namespace ir_builder
   class SharedBlockEdgeGraphBuilder
   {
   private:
-
-
     using SignatureLayers = std::vector<std::unordered_map<GlobalRelId, PredicateId>>;
-
     const SignatureLayers &signatures_;
-
     std::unordered_map<qg::BlockId, SharedBlockIR>
         shared_block_registry_;
     /**
@@ -43,37 +39,7 @@ namespace ir_builder
           "SharedBlockEdgeGraphBuilder: " + message);
     }
 
-    /**
-     * Register the first occurrence of a BlockId.
-     *
-     * Later occurrences must have:
-     *
-     * - same local predicate at every local EIdx;
-     * - same edge structure;
-     * - same boundary EIdx.
-     *
-     * It is up to the USER to make sure that their shared block definitions are valid
-     * Also, we don't check graph isomorphism properly. User also has to give the correct matching orders.
-     */
-    void registerOrValidateBlock(
-        const egh::BlockOccurrence &occurrence,
-        const raw::EdgeGraphRaw& edge_graph_raw
-    )
-    {
-      auto [block_ir, shape] = egh::makeSharedBlockIR(occurrence, edge_graph_raw, signatures_.at(0));
-      if (!registered_shapes_.contains(occurrence.block_id))
-      {
-        registered_shapes_.emplace(occurrence.block_id, shape);
-        shared_block_registry_.emplace(occurrence.block_id, std::move(block_ir));
-        return;
-      }
-      if ((registered_shapes_.at(occurrence.block_id) != shape))
-      {
-        fail(
-            "two SharedBlock occurrences have the same BlockId "
-            "but different predicate/adjacency structure");
-      }
-    }
+
 
     collapsed::EdgeGraphCollapsed buildEdgeGraph(
         const qg::QueryGraph &queryGraph,
@@ -83,63 +49,24 @@ namespace ir_builder
 
       // 1. Build full, uncollapsed relationship edge graph.
       auto raw_edge_graph = egh::buildRawEdgeGraph(queryGraph, ge.queryLocalToGlobals.at(qi), ge.relationships);
+      
       // 2. Resolve and validate shared-block occurrences.
-      // block_of_relationship[i] = occurrence index
-      auto [block_occurrences, block_of_relationship] = egh::analyseBlocks(queryGraph, raw_edge_graph);
-      for (const auto &occurrence : block_occurrences)
-      {
-        registerOrValidateBlock(occurrence, raw_edge_graph);
-      }
+      // - modify:
+      //   - registered_shapes: BlockId->BlockShape
+      //   - shared_block_registry: BlockId->SharedBlockIR
+      // return node classifications
+      auto classification_of_node = egh::analyseBlocks(
+        queryGraph, 
+        raw_edge_graph,
+        shared_block_registry_,
+        registered_shapes_,
+        signatures_.at(0)
+      );
+
+
+
       // 3. Collapse each shared block occurrence into one outer EdgeGraph node.
 
-
-      
-      std::vector<collapsed::NodeType> nodes;
-      // Maps original qrel index -> collapsed outer EIdx.
-      std::vector<size_t> outer_index_of_relationship(qrels.size());
-      std::unordered_set<qg::BlockId> created_blocks;
-      for (size_t qrel_index = 0; qrel_index < qrels.size(); ++qrel_index)
-      {
-        // Ordinary relationship.
-        if (!block_of_relationship.contains(qrel_index))
-        {
-          size_t outer_index = nodes.size();
-          nodes.push_back(qrels[qrel_index]);
-          outer_index_of_relationship[qrel_index] = outer_index;
-          continue;
-        }
-
-        // from now on, we are dealing with a Block. We need to create the SharedBlockreference
-        qg::BlockId block_id = block_of_relationship[qrel_index];
-        if (created_blocks.contains(block_id))
-          continue;
-        created_blocks.insert(block_id);
-
-        const egh::BlockOccurrence &block_occurrence = block_occurrences.at(block_id);
-
-        SharedBlockReference shared_block_reference{
-            .boundary_node = block_occurrence.boundary_relationship_index,
-            .block_id = block_occurrence.block_id,
-            .back_mapping = {}
-        };
-        // back_mapping[k] corresponds exactly to
-        // SharedBlockIR::EIdx{k}.
-        size_t block_eidx = 0;
-        for (EIdx block_qrel_index : block_occurrence.relationship_indices)
-        {
-          shared_block_reference.back_mapping[SharedBlockIR::EIdx(block_eidx)] = qrels[block_qrel_index.val];
-          block_eidx++;
-        }
-
-        // Every relationship inside this block occurrence collapses
-        // to the same outer EdgeGraph node.
-        size_t outer_index = nodes.size();
-        nodes.push_back(std::move(shared_block_reference));
-        for (EIdx block_qrel_index : block_occurrence.relationship_indices)
-        {
-          outer_index_of_relationship[block_qrel_index.val] = outer_index;
-        }
-      }
 
       // ---------------------------------------------------------
       // 4. Build adjacency of the collapsed quotient edge graph.

@@ -140,6 +140,17 @@ namespace ir_builder
           adj_(adj)
     {
     }
+
+    size_t num_nodes() const
+    {
+      return nodes_.size();
+    }
+
+    std::vector<NodeType> &all_nodes() const
+    {
+      return nodes_;
+    }
+
     NodeType node_at(EIdx eidx) const
     {
       return nodes_[eidx.val];
@@ -167,7 +178,7 @@ namespace ir_builder
       EIdx(size_t val) : val(val)
       {
       }
-      bool operator==(const EIdx&) const = default;
+      bool operator==(const EIdx &) const = default;
     };
     query_graph::BlockId block_id;
 
@@ -186,19 +197,9 @@ namespace ir_builder
       EIdx(size_t val) : val(val)
       {
       }
-      bool operator==(const EIdx&) const = default;
+      bool operator==(const EIdx &) const = default;
     };
     typedef EdgeGraph<PatternRelationshipIR, EIdx> EdgeGraphRaw;
-  };
-
-  /**
-   * localized shared block for a specific EdgeGraph
-   */
-  struct SharedBlockReference
-  {
-    collapsed::EIdx boundary_node;
-    query_graph::BlockId block_id;
-    std::unordered_map<SharedBlockIR::EIdx, PatternRelationshipIR> back_mapping;
   };
 
   namespace collapsed
@@ -207,16 +208,32 @@ namespace ir_builder
     struct EIdx
     {
       size_t val;
+      EIdx() = default;
       EIdx(size_t val) : val(val)
       {
       }
-      bool operator==(const EIdx&) const = default;
+      bool operator==(const EIdx &) const = default;
     };
-    typedef std::variant<PatternRelationshipIR, SharedBlockReference> NodeType;
-    typedef EdgeGraph<std::variant<PatternRelationshipIR, SharedBlockReference>, EIdx> EdgeGraphCollapsed;
+    
+
   }
 
+  /**
+   * localized shared block for a specific EdgeGraph
+   */
+  struct SharedBlockReference
+  {
+    collapsed::EIdx index;
+    collapsed::EIdx boundary_node;
+    query_graph::BlockId block_id;
+    std::unordered_map<SharedBlockIR::EIdx, PatternRelationshipIR> back_mapping;
+  };
 
+  namespace collapsed
+  {
+    typedef EdgeGraph<std::variant<PatternRelationshipIR, SharedBlockReference>, EIdx> EdgeGraphCollapsed;
+    typedef std::variant<PatternRelationshipIR, SharedBlockReference> NodeType;
+  };
 
   // relId, endpoint
   struct Incidence

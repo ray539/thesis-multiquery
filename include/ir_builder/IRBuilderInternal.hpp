@@ -81,7 +81,6 @@ namespace ir_builder
       query_graph::BlockId block_id;
       // outer edge graph indices
       std::vector<raw::EIdx> relationship_indices;
-
       // Index into relationship_indices.
       size_t boundary_local_index;
       // Index into QueryGraph::patternRelationships.
@@ -107,6 +106,17 @@ namespace ir_builder
       bool operator==(const BlockShape &) const = default;
     };
 
+    namespace node_classification { 
+      struct Boundary {
+        // the node is a boundary, and belongs to the following shared blocks
+        std::vector<size_t> occurrence_ids;
+      };
+      struct Inner {
+        size_t occurrence_id;
+      };
+      struct Outer {};
+      typedef std::variant<Boundary, Inner,Outer> nc;
+    }
 
 
     /**
@@ -118,16 +128,19 @@ namespace ir_builder
         std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships);
 
     /**
-     * Resolve user-provided SharedBlock annotations into indices into the EdgeGraph
-     *
+     * This will
+     * - Resolve user-provided SharedBlock annotations into indices into the EdgeGraph
+     * - register the new blocks in `shared_block_of` and `blockshape_of`
+     * 
      * return
-     * - BlockOcurrences: BlockId -> BlockOccurrence, an occurrence of a shared block. Many of these can be the same
-     *   the objct itself only just contains indices into the edge graph. Next step will create the shared blocks themselves.
-     * - block_of_relationship EIdx -> occurence_id: edge graph index to block id
+     * - classification_of_node: classifies each node on whether it belongs to the inner, outer or boundary of a shared block
      */
-    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, size_t>> analyseBlocks(
+    std::unordered_map<raw::EIdx, node_classification::nc> analyseBlocks(
         const qg::QueryGraph &queryGraph,
-        raw::EdgeGraphRaw &raw_adj);
+        const raw::EdgeGraphRaw &raw_edge_graph,
+        std::unordered_map<qg::BlockId, SharedBlockIR> &shared_block_of,
+        std::unordered_map<qg::BlockId, BlockShape> &blockshape_of,
+        const std::unordered_map<GlobalRelId, PredicateId> &signatures);
 
     /**
     * turn an `BlockOccurrence` to an `SharedBlockIR`. 

@@ -11,14 +11,17 @@ namespace ir_builder
 {
   namespace edge_graph_helpers
   {
-
+    /**
+     * extract predicates from the `BlockOccurrence`. 
+     * - give in signatures because we need to use the LEVEL 0 predicate, not the level k predicate shown on 
+     * later: might treat each input shared block as another query graph, and map to those predicates
+     */
     std::vector<PredicateId> extract_predicate_ids(const raw::EdgeGraphRaw &edge_graph_raw, const std::unordered_map<GlobalRelId, PredicateId> &signatures,  const BlockOccurrence &occurrence)
     {
       std::vector<PredicateId> predicate_ids;
-      for (size_t occ_rel_idx = 0; occ_rel_idx < occurrence.relationship_indices.size(); ++occ_rel_idx)
+      for (raw::EIdx rel_index : occurrence.relationship_indices)
       {
-        raw::EIdx qrel_index = occurrence.relationship_indices[occ_rel_idx];
-        GlobalRelId global_rel_id = edge_graph_raw.node_at(qrel_index).global_rel_id;
+        GlobalRelId global_rel_id = edge_graph_raw.node_at(rel_index).global_rel_id;
         PredicateId base_predicate = signatures.at(global_rel_id); // later: change to use hierarchical
         predicate_ids.push_back(base_predicate.val);
       }
@@ -54,6 +57,10 @@ namespace ir_builder
       return shape;
     }
 
+    /**
+     * turn block shape into adjacency list.
+     * - block shape includes list of edges, so just use that
+     */
     std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj_from_shape(BlockShape& shape) {
       std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj (shape.predicate_ids.size());
       for (auto [a, b, adjType] : shape.edges) {
@@ -66,7 +73,7 @@ namespace ir_builder
     }
 
     /**
-     * map each edge graph node (qrel index) to index in the shared block
+     * map each edge graph node to index in the shared block
      */
     std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> get_qrel_to_local(const BlockOccurrence &occurrence) {
       std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> qrel_to_local;
@@ -77,9 +84,7 @@ namespace ir_builder
       return qrel_to_local;
     }
 
-    /**
-     * change BlockOccurrence to SharedBlockIR
-     */
+
     std::pair<SharedBlockIR, BlockShape> makeSharedBlockIR(
         const BlockOccurrence &occurrence,
         const raw::EdgeGraphRaw &edge_graph_raw,
