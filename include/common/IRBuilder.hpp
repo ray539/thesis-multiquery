@@ -130,15 +130,32 @@ namespace ir_builder
       EIdx other;
     };
 
+    struct EGraphEdge
+    {
+      common::Adjacency adjType;
+      EIdx a;
+      EIdx b;
+    };
+
   private:
     std::vector<NodeType> nodes_;
     std::vector<std::vector<EGraphAdjacency>> adj_;
 
   public:
+    EdgeGraph(std::vector<NodeType> nodes)
+        : nodes_(nodes),
+          adj_(nodes.size(), std::vector<EGraphAdjacency>{})
+    {
+    }
+
     EdgeGraph(std::vector<NodeType> nodes, std::vector<std::vector<EGraphAdjacency>> adj)
         : nodes_(nodes),
           adj_(adj)
     {
+    }
+
+    void add_edge(const EGraphEdge& edge) {
+      adj_[edge.a.val].push_back({edge.adjType, edge.b});
     }
 
     size_t num_nodes() const
@@ -150,6 +167,7 @@ namespace ir_builder
     {
       return nodes_;
     }
+
 
     NodeType node_at(EIdx eidx) const
     {
@@ -181,11 +199,11 @@ namespace ir_builder
       bool operator==(const EIdx &) const = default;
     };
     query_graph::BlockId block_id;
+    EdgeGraph<PredicateId, EIdx> edge_graph;
+    // backtracking MUST start here. If none, it means we are free to choose where to start backtracking
+    std::optional<EIdx> boundary_node; 
 
     typedef EdgeGraph<PredicateId, EIdx> EdgeGraphSB;
-
-    EdgeGraph<PredicateId, EIdx> edge_graph;
-    EIdx boundary_node; // backtracking MUST start here
   };
 
   namespace raw
@@ -194,6 +212,7 @@ namespace ir_builder
     struct EIdx
     {
       size_t val;
+      EIdx() = default;
       EIdx(size_t val) : val(val)
       {
       }
@@ -214,8 +233,6 @@ namespace ir_builder
       }
       bool operator==(const EIdx &) const = default;
     };
-    
-
   }
 
   /**
@@ -223,7 +240,6 @@ namespace ir_builder
    */
   struct SharedBlockReference
   {
-    collapsed::EIdx index;
     collapsed::EIdx boundary_node;
     query_graph::BlockId block_id;
     std::unordered_map<SharedBlockIR::EIdx, PatternRelationshipIR> back_mapping;

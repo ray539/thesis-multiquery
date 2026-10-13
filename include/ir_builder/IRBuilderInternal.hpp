@@ -73,22 +73,26 @@ namespace ir_builder
   {
 
     /**
-     *
-     * Intermediate representation of SharedBlockIR, to be turned into one
+     * Think of this class as holding a bunch of pointers to nodes in the outer raw edge graph.
+     * These will then be used for further analysis to be turned into compressed shared blocks.
      */
     struct BlockOccurrence
     {
+      struct Boundary {
+        // local index. Can be used to index outer_node_indices
+        size_t boundary_local_index;
+        // global index
+        raw::EIdx boundary_outer_index;
+      };
+
       query_graph::BlockId block_id;
       // outer edge graph indices
-      std::vector<raw::EIdx> relationship_indices;
-      // Index into relationship_indices.
-      size_t boundary_local_index;
-      // Index into QueryGraph::patternRelationships.
-      raw::EIdx boundary_relationship_index;
+      std::vector<raw::EIdx> outer_node_indices;
+      std::optional<Boundary> boundary;
     };
 
     /**
-     * Canonical description used only to validate that two occurrences with
+     * Canonical description used to validate that two occurrences with
      * the same BlockId actually describe the same shared block.
      */
     struct BlockShape
@@ -99,25 +103,26 @@ namespace ir_builder
       //   (from local EIdx, to local EIdx, adjacency type)
       // Sorted canonically.
       std::vector<std::tuple<SharedBlockIR::EIdx, SharedBlockIR::EIdx, int>> edges;
-      SharedBlockIR::EIdx boundary_local_index;
-
-
-
+      std::optional<SharedBlockIR::EIdx> boundary_local_index;
       bool operator==(const BlockShape &) const = default;
     };
 
-    namespace node_classification { 
-      struct Boundary {
+    namespace node_classification
+    {
+      struct Boundary
+      {
         // the node is a boundary, and belongs to the following shared blocks
         std::vector<size_t> occurrence_ids;
       };
-      struct Inner {
+      struct Inner
+      {
         size_t occurrence_id;
       };
-      struct Outer {};
-      typedef std::variant<Boundary, Inner,Outer> nc;
+      struct Outer
+      {
+      };
+      typedef std::variant<Boundary, Inner, Outer> nc;
     }
-
 
     /**
      * build the edge graph before collapsing shared blocks
@@ -129,13 +134,14 @@ namespace ir_builder
 
     /**
      * This will
-     * - Resolve user-provided SharedBlock annotations into indices into the EdgeGraph
+     * - turn user given shared block annotations into `BlockOccurrence` objects
      * - register the new blocks in `shared_block_of` and `blockshape_of`
-     * 
+     *
      * return
+     * - block_occurrences: `vector<BlockOccurrence>`: list of block occurrence objects
      * - classification_of_node: classifies each node on whether it belongs to the inner, outer or boundary of a shared block
      */
-    std::unordered_map<raw::EIdx, node_classification::nc> analyseBlocks(
+    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, node_classification::nc>> analyseBlocks(
         const qg::QueryGraph &queryGraph,
         const raw::EdgeGraphRaw &raw_edge_graph,
         std::unordered_map<qg::BlockId, SharedBlockIR> &shared_block_of,
@@ -143,15 +149,24 @@ namespace ir_builder
         const std::unordered_map<GlobalRelId, PredicateId> &signatures);
 
     /**
-    * turn an `BlockOccurrence` to an `SharedBlockIR`. 
-    * return
-    * - `SharedBlockIR`: final IR form of a shared block
-    * - `BlockShape`: shape of the block. Can be used to determine whether it is equal to another SharedBlockIR
-    */
+     * turn an `BlockOccurrence` to an `SharedBlockIR`.
+     * return
+     * - `SharedBlockIR`: final IR form of a shared block
+     * - `BlockShape`: shape of the block. Can be used to determine whether it is equal to another SharedBlockIR
+     */
     std::pair<SharedBlockIR, BlockShape> makeSharedBlockIR(
         const BlockOccurrence &occurrence,
         const raw::EdgeGraphRaw &edge_graph_raw,
         const std::unordered_map<GlobalRelId, PredicateId> &signatures);
+
+
+    /**
+     * step 3 (final) step of the collapsed edge graph building process
+     */
+    collapsed::EdgeGraphCollapsed buildCollapsedGraph(
+        const raw::EdgeGraphRaw &raw_edge_graph,
+        const std::vector<BlockOccurrence> &block_occurrences,
+        const std::unordered_map<ir_builder::raw::EIdx, node_classification::nc> &classification_of_node);
 
   } // namespace edge_graph_helpers
 

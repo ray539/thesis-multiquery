@@ -30,7 +30,8 @@ enum class Adjacency
   StartStart,
   StartEnd,
   EndStart,
-  EndEnd
+  EndEnd,
+  BoundaryToSB // boundary node to a shared block. One way edge which occurs when using shared blocks
 };
 
 

@@ -20,10 +20,10 @@ namespace ir_builder
 
     /**
      * get boundary of the shared block
-     * - this is an edge graph node which disconnects the graph
-     * -
+     * - this is an edge graph node which disconnects the graph if removed
+     * - this node may not exist, which would mean that the block is the entire query graph. That's also ok
      */
-    raw::EIdx get_boundary(const raw::EdgeGraphRaw &edge_graph_raw, const std::vector<raw::EIdx> &nodes_in_block)
+    std::optional<raw::EIdx> get_boundary(const raw::EdgeGraphRaw &edge_graph_raw, const std::vector<raw::EIdx> &nodes_in_block)
     {
       /**
        * find all boundary candidates, those which touch the outside graph
@@ -55,18 +55,14 @@ namespace ir_builder
             std::to_string(
                 boundary_candidates.size()));
       }
-      raw::EIdx boundary(0);
       if (boundary_candidates.size() == 1)
       {
         // only one boundary. Find the EIdx of this boundary
-        boundary = boundary_candidates[0];
+        return boundary_candidates[0];
       }
-      else
-      {
-        // entire block is disconnected, just choose any block to be the boundary
-        boundary = nodes_in_block.at(0);
-      }
-      return boundary;
+
+      // no boundary exists
+      return std::nullopt;
     }
 
     /**
@@ -99,17 +95,23 @@ namespace ir_builder
 
         nodes_in_block.push_back(node_index);
       }
+      if (nodes_in_block.empty())
+      {
+        throw std::runtime_error("block is empty");
+      }
+
       return nodes_in_block;
     }
 
     /**
      * Check that the induced shared block is connected using dfs
+     * - since the edge graph is bidirectional, should be fine if we just DFS from 0
      */
-    void check_connected(const raw::EdgeGraphRaw &raw_adj, const std::vector<raw::EIdx> &nodes_in_block, raw::EIdx boundary)
+    void check_connected(const raw::EdgeGraphRaw &raw_adj, const std::vector<raw::EIdx> &nodes_in_block)
     {
 
       std::unordered_set<raw::EIdx> visited;
-      std::vector<raw::EIdx> stack{boundary};
+      std::vector<raw::EIdx> stack{nodes_in_block.at(0)};
       while (!stack.empty())
       {
         raw::EIdx current = stack.back();
@@ -137,39 +139,33 @@ namespace ir_builder
     BlockOccurrence process_block(
         const raw::EdgeGraphRaw &raw_adj,
         const std::unordered_map<qg::VariableId, raw::EIdx> &varid_to_index,
-        std::unordered_map<raw::EIdx, std::vector<size_t>> &occs_of_node,
-        const qg::SharedBlock &block,
-        size_t occurence_id)
+        const qg::SharedBlock &block)
     {
-
       if (block.patternRelationshipIDs.empty())
         throw std::runtime_error("shared block contains no relationships");
       std::vector<raw::EIdx> nodes_in_block = check_and_get_nodes_in_block(varid_to_index, block);
-      raw::EIdx boundary = get_boundary(raw_adj, nodes_in_block);
-      check_connected(raw_adj, nodes_in_block, boundary);
+      check_connected(raw_adj, nodes_in_block);
 
-      size_t boundary_local = std::find(nodes_in_block.begin(),
-                                        nodes_in_block.end(),
-                                        boundary) -
-                              nodes_in_block.begin();
-
-      // check validity of the block
-      // - for each node n in the block, unless n is a boundary it is not allowed to
-      //   be in two blocks
-      for (const raw::EIdx &node : nodes_in_block)
+      std::optional<BlockOccurrence::Boundary> boundary;
+      std::optional<raw::EIdx> outer_boundary_ = get_boundary(raw_adj, nodes_in_block);
+      if (outer_boundary_.has_value())
       {
-        if (occs_of_node.contains(node) && node != boundary)
-        {
-          throw std::runtime_error("non boundary query relationship belongs to more than one shared block");
-        }
-        occs_of_node.at(node).push_back(occurence_id); // if it is a neighbor, bad news...
+        auto outer_boundary = outer_boundary_.value();
+        size_t local_boundary = std::find(nodes_in_block.begin(),
+                                          nodes_in_block.end(),
+                                          outer_boundary) -
+                                nodes_in_block.begin();
+        boundary = BlockOccurrence::Boundary {
+          .boundary_local_index = local_boundary,
+          .boundary_outer_index = outer_boundary
+        };        
       }
 
       return BlockOccurrence{
           .block_id = block.block_id,
-          .relationship_indices = std::move(nodes_in_block),
-          .boundary_local_index = boundary_local,
-          .boundary_relationship_index = boundary};
+          .outer_node_indices = std::move(nodes_in_block),
+          .boundary = std::move(boundary)
+      };
     }
 
     // mapping of qg.patternRelationship -> EIdx in our raw edge graph
@@ -236,7 +232,7 @@ namespace ir_builder
         {
           size_t occ_id = occ_ids[0];
           auto occ = block_occurrences.at(occ_id);
-          if (occ.boundary_relationship_index == node)
+          if (occ.boundary.has_value() && occ.boundary->boundary_outer_index == node)
           {
             classification_of_node.emplace(node, node_classification::Boundary{.occurrence_ids = {occ_id}});
             continue;
@@ -253,7 +249,7 @@ namespace ir_builder
       }
     }
 
-    std::unordered_map<raw::EIdx, node_classification::nc> analyseBlocks(
+    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, node_classification::nc>> analyseBlocks(
         const qg::QueryGraph &queryGraph,
         const raw::EdgeGraphRaw &raw_edge_graph,
         std::unordered_map<qg::BlockId, SharedBlockIR> &shared_block_of,
@@ -262,27 +258,51 @@ namespace ir_builder
     {
       // mapping of qg.patternRelationship -> EIdx in our raw edge graph
       std::unordered_map<qg::VariableId, raw::EIdx> varid_to_index = get_varid_to_eidx(queryGraph);
+      // mapping of node -> all block occurrences it occurs in
       std::unordered_map<raw::EIdx, std::vector<size_t>> occs_of_node;
       for (auto &node : raw_edge_graph.all_nodes())
       {
         occs_of_node.emplace(node, std::vector<size_t>{});
       }
 
+      // turn user marked regions into BlockOccurrence objects
       std::vector<BlockOccurrence> block_occurrences;
       size_t occurrence_id = 0;
       for (const qg::SharedBlock &block : queryGraph.sharedBlocks)
       {
-        BlockOccurrence occ = process_block(raw_edge_graph, varid_to_index, occs_of_node, block, occurrence_id);
+        BlockOccurrence occ = process_block(raw_edge_graph, varid_to_index, block);
         block_occurrences.push_back(occ);
+        for (auto &node_index : occ.outer_node_indices)
+        {
+          occs_of_node.at(node_index).push_back(occurrence_id);
+        }
         occurrence_id++;
       }
+      // validate validity of occs_of_node
+      // - any node belonging in 2+ occurrences must be the boundary of those occurrences
+      for (const auto &[node_index, occs] : occs_of_node)
+      {
+        if (occs.size() > 2)
+        {
+          for (size_t occ_id : occs)
+          {
+            auto& occ = block_occurrences[occ_id];
+            if (occ.boundary.has_value() && occ.boundary->boundary_outer_index != node_index)
+            {
+              throw std::runtime_error("non boundary node belongs to 2+ shared blocks");
+            }
+          }
+        }
+      }
+
       // register block occurrences with global registry
       for (const auto &occurrence : block_occurrences)
       {
         registerOrValidateBlock(occurrence, raw_edge_graph, shared_block_of, blockshape_of, signatures);
       }
+
       auto classification_of_node = classify_nodes(occs_of_node, block_occurrences);
-      return classification_of_node;
+      return {block_occurrences, classification_of_node};
     }
   } // namespace edge_graph_helpers
 } // namespace ir_builder

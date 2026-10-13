@@ -12,14 +12,14 @@ namespace ir_builder
   namespace edge_graph_helpers
   {
     /**
-     * extract predicates from the `BlockOccurrence`. 
-     * - give in signatures because we need to use the LEVEL 0 predicate, not the level k predicate shown on 
+     * extract predicates from the `BlockOccurrence`.
+     * - give in signatures because we need to use the LEVEL 0 predicate, not the level k predicate shown on
      * later: might treat each input shared block as another query graph, and map to those predicates
      */
-    std::vector<PredicateId> extract_predicate_ids(const raw::EdgeGraphRaw &edge_graph_raw, const std::unordered_map<GlobalRelId, PredicateId> &signatures,  const BlockOccurrence &occurrence)
+    std::vector<PredicateId> extract_predicate_ids(const raw::EdgeGraphRaw &edge_graph_raw, const std::unordered_map<GlobalRelId, PredicateId> &signatures, const BlockOccurrence &occurrence)
     {
       std::vector<PredicateId> predicate_ids;
-      for (raw::EIdx rel_index : occurrence.relationship_indices)
+      for (raw::EIdx rel_index : occurrence.outer_node_indices)
       {
         GlobalRelId global_rel_id = edge_graph_raw.node_at(rel_index).global_rel_id;
         PredicateId base_predicate = signatures.at(global_rel_id); // later: change to use hierarchical
@@ -33,22 +33,27 @@ namespace ir_builder
         const BlockOccurrence &occurrence,
         const raw::EdgeGraphRaw &edge_graph_raw,
         const std::unordered_map<GlobalRelId, PredicateId> &signatures,
-        std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> &qrel_to_local)
+        std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> &outer_to_local)
     {
-      const size_t block_size = occurrence.relationship_indices.size();
+      const size_t block_size = occurrence.outer_node_indices.size();
       BlockShape shape;
-      shape.boundary_local_index = occurrence.boundary_local_index;
+      shape.boundary_local_index = occurrence.boundary.has_value()
+                                       ? std::make_optional(occurrence.boundary->boundary_local_index)
+                                       : std::nullopt;
+
       shape.predicate_ids = extract_predicate_ids(edge_graph_raw, signatures, occurrence);
 
-      for (size_t occ_rel_idx = 0; occ_rel_idx < block_size; ++occ_rel_idx)
+      for (size_t local_index = 0; local_index < block_size; ++local_index)
       {
-        raw::EIdx qrel_index = occurrence.relationship_indices[occ_rel_idx];
-        for (const raw::EdgeGraphRaw::EGraphAdjacency &edge : edge_graph_raw.adj(qrel_index))
+        raw::EIdx outer_index = occurrence.outer_node_indices[local_index];
+        for (const raw::EdgeGraphRaw::EGraphAdjacency &edge : edge_graph_raw.adj(outer_index))
         {
-          if (!qrel_to_local.contains(edge.other)) continue;
-          SharedBlockIR::EIdx neighbor_local = qrel_to_local.at(edge.other);
+          if (!outer_to_local.contains(edge.other))
+            continue;
+        
+          SharedBlockIR::EIdx neighbor_local = outer_to_local.at(edge.other);
           shape.edges.emplace_back(
-              occ_rel_idx,
+              local_index,
               neighbor_local,
               static_cast<int>(edge.adjType));
         }
@@ -61,13 +66,13 @@ namespace ir_builder
      * turn block shape into adjacency list.
      * - block shape includes list of edges, so just use that
      */
-    std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj_from_shape(BlockShape& shape) {
-      std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj (shape.predicate_ids.size());
-      for (auto [a, b, adjType] : shape.edges) {
-        adj[a.val].push_back({
-          .adjType = common::Adjacency(adjType), 
-          .other = b
-        });
+    std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj_from_shape(BlockShape &shape)
+    {
+      std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj(shape.predicate_ids.size());
+      for (auto [a, b, adjType] : shape.edges)
+      {
+        adj[a.val].push_back({.adjType = common::Adjacency(adjType),
+                              .other = b});
       };
       return adj;
     }
@@ -75,24 +80,24 @@ namespace ir_builder
     /**
      * map each edge graph node to index in the shared block
      */
-    std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> get_qrel_to_local(const BlockOccurrence &occurrence) {
-      std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> qrel_to_local;
-      for (size_t occ_rel_idx = 0; occ_rel_idx < occurrence.relationship_indices.size(); ++occ_rel_idx)
+    std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> get_outer_to_local(const BlockOccurrence &occurrence)
+    {
+      std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> outer_to_local;
+      for (size_t local_index = 0; local_index < occurrence.outer_node_indices.size(); ++local_index)
       {
-        qrel_to_local.emplace(occurrence.relationship_indices[occ_rel_idx], SharedBlockIR::EIdx(occ_rel_idx));
+        outer_to_local.emplace(occurrence.outer_node_indices[local_index], SharedBlockIR::EIdx(local_index));
       }
-      return qrel_to_local;
+      return outer_to_local;
     }
-
 
     std::pair<SharedBlockIR, BlockShape> makeSharedBlockIR(
         const BlockOccurrence &occurrence,
         const raw::EdgeGraphRaw &edge_graph_raw,
         const std::unordered_map<GlobalRelId, PredicateId> &signatures)
     {
-      const size_t block_size = occurrence.relationship_indices.size();
-      std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> qrel_to_local = get_qrel_to_local(occurrence);
-      BlockShape shape = buildBlockShape(occurrence, edge_graph_raw, signatures, qrel_to_local);
+      const size_t block_size = occurrence.outer_node_indices.size();
+      std::unordered_map<raw::EIdx, SharedBlockIR::EIdx> outer_to_local = get_outer_to_local(occurrence);
+      BlockShape shape = buildBlockShape(occurrence, edge_graph_raw, signatures, outer_to_local);
       std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj = adj_from_shape(shape);
 
       SharedBlockIR result{
@@ -103,9 +108,9 @@ namespace ir_builder
                   std::move(adj),
               },
           .boundary_node =
-              SharedBlockIR::EIdx{
-                  occurrence.boundary_local_index},
-      };
+              occurrence.boundary.has_value() ? std::make_optional(SharedBlockIR::EIdx{
+                                                    occurrence.boundary->boundary_local_index})
+                                              : std::nullopt};
       return {
           std::move(result),
           std::move(shape)};

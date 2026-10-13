@@ -39,66 +39,28 @@ namespace ir_builder
           "SharedBlockEdgeGraphBuilder: " + message);
     }
 
-
-
     collapsed::EdgeGraphCollapsed buildEdgeGraph(
         const qg::QueryGraph &queryGraph,
         size_t qi,
         GlobalEntities &ge)
     {
-
       // 1. Build full, uncollapsed relationship edge graph.
       auto raw_edge_graph = egh::buildRawEdgeGraph(queryGraph, ge.queryLocalToGlobals.at(qi), ge.relationships);
-      
+
       // 2. Resolve and validate shared-block occurrences.
       // - modify:
       //   - registered_shapes: BlockId->BlockShape
       //   - shared_block_registry: BlockId->SharedBlockIR
       // return node classifications
-      auto classification_of_node = egh::analyseBlocks(
-        queryGraph, 
-        raw_edge_graph,
-        shared_block_registry_,
-        registered_shapes_,
-        signatures_.at(0)
-      );
-
-
+      auto [block_occurrences, classification_of_node] = egh::analyseBlocks(
+          queryGraph,
+          raw_edge_graph,
+          shared_block_registry_,
+          registered_shapes_,
+          signatures_.at(0));
 
       // 3. Collapse each shared block occurrence into one outer EdgeGraph node.
-
-
-      // ---------------------------------------------------------
-      // 4. Build adjacency of the collapsed quotient edge graph.
-      //
-      // Internal block edges disappear.
-      //
-      // Since analyseBlocks() guarantees that only the boundary
-      // relationship touches the outside, all surviving edges on a
-      // block reference are exactly the edges of its boundary
-      // relationship.
-      // ---------------------------------------------------------
-
-      std::vector<std::vector<EGraphAdjacency>> adj(nodes.size());
-      for (size_t qrel_index = 0; qrel_index < qrels.size(); ++qrel_index)
-      {
-        size_t outer_from = outer_index_of_relationship[qrel_index];
-        for (const RawAdjacency &edge : raw_adj[qrel_index])
-        {
-          size_t outer_to = outer_index_of_relationship[edge.other.val];
-          // Internal to the same collapsed shared block.
-          if (outer_from == outer_to)
-            continue;
-          adj[outer_from].push_back(EGraphAdjacency{
-              edge.type,
-              outer_to,
-          });
-        }
-      }
-
-      return EdgeGraph{
-          std::move(nodes),
-          std::move(adj)};
+      return egh::buildCollapsedGraph(raw_edge_graph, block_occurrences, classification_of_node);
     }
 
   public:
@@ -109,7 +71,7 @@ namespace ir_builder
      * 2. the global context-independent SharedBlockIR registry.
      */
     std::pair<
-        std::vector<EdgeGraph>,
+        std::vector<collapsed::EdgeGraphCollapsed>,
         std::unordered_map<qg::BlockId, SharedBlockIR>>
     build(
         const std::vector<qg::QueryGraph> &queryGraphs,
@@ -118,14 +80,10 @@ namespace ir_builder
       shared_block_registry_.clear();
       registered_shapes_.clear();
 
-      std::vector<EdgeGraph> edge_graphs;
+      std::vector<collapsed::EdgeGraphCollapsed> edge_graphs;
+      edge_graphs.reserve(queryGraphs.size());
 
-      edge_graphs.reserve(
-          queryGraphs.size());
-
-      for (size_t qi = 0;
-           qi < queryGraphs.size();
-           ++qi)
+      for (size_t qi = 0; qi < queryGraphs.size(); ++qi)
       {
         edge_graphs.push_back(
             buildEdgeGraph(
