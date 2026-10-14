@@ -69,21 +69,6 @@ namespace execution
         {
           continue;
         }
-        //
-        // A query self-loop must map to a data
-        // self-loop.
-        //
-        if (
-            qrel.startNode == qrel.endNode &&
-            database_.endpoint(
-                drel,
-                common::Endpoint::Start) !=
-                database_.endpoint(
-                    drel,
-                    common::Endpoint::End))
-        {
-          continue;
-        }
 
         bool valid = true;
 

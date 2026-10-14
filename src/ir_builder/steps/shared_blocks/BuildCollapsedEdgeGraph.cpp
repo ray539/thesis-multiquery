@@ -13,16 +13,16 @@ namespace ir_builder
      * - first: the sb reference object
      * - second: the collapsed node id
      */
-    SharedBlockReference create_shared_reference(
+    collapsed::SharedBlockReference create_shared_reference(
         const raw::EdgeGraphRaw &raw_edge_graph,
         const std::unordered_map<ir_builder::raw::EIdx, node_classification::nc> &classification_of_node,
-        const collapsed::EIdx &collapsed_boundary_node,
+        const qg::VariableId &collapsed_boundary_node,
         const BlockOccurrence &block_occurrence)
     {
       /**
        * CREATE NEW SHARED REFERENCE OBJECT
        */
-      SharedBlockReference shared_block_reference{
+      collapsed::SharedBlockReference shared_block_reference{
           .boundary_node = collapsed_boundary_node,
           .block_id = block_occurrence.block_id,
           .back_mapping = {}};
@@ -41,7 +41,7 @@ namespace ir_builder
         assert(
             std::holds_alternative<node_classification::Inner>(classification_of_node.at(node_index_occ)));
 
-        shared_block_reference.back_mapping[SharedBlockIR::EIdx(block_eidx)] = raw_edge_graph.node_at(node_index_occ);
+        shared_block_reference.back_mapping[SharedBlockIR::EIdx(block_eidx)] = raw_edge_graph.node_at(node_index_occ).lv;
         block_eidx++;
       }
 
@@ -77,8 +77,9 @@ namespace ir_builder
       {
         size_t new_id = nodes.size();
         nodes.push_back(node);
-        return new_id;
+        return collapsed::EIdx(new_id);
       };
+
       for (size_t node_index = 0; node_index < raw_edge_graph.num_nodes(); node_index++)
       {
         if (std::holds_alternative<node_classification::Outer>(classification_of_node.at(node_index)))
@@ -103,7 +104,7 @@ namespace ir_builder
               auto new_ref = create_shared_reference(
                   raw_edge_graph,
                   classification_of_node,
-                  boundary_idx_collapsed,
+                  raw_edge_graph.node_at(node_index).lv,
                   block_occurrence);
               collapsed::EIdx sb_idx_collapsed = register_new_node(std::move(new_ref));
               occ_to_sb_reference_idx.emplace(occ_id, sb_idx_collapsed);

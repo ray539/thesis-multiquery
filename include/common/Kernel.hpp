@@ -2,17 +2,6 @@
 #include <bits/stdc++.h>
 #include <common/Common.hpp>
 
-
-
-template <>
-struct std::hash<kernel::DRelId>
-{
-  size_t operator()(const kernel::DRelId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
-
 namespace kernel
 {
   // for our toy backend
@@ -130,13 +119,13 @@ namespace kernel
   private:
     DatabaseMetrics &metrics_;
 
-    std::unordered_map<DNodeId, DNode> nodes_;
-    std::unordered_map<DRelId, DRelationship> relationships_;
+    std::unordered_map<DNodeId, DNode, IntStrongHash> nodes_;
+    std::unordered_map<DRelId, DRelationship, IntStrongHash> relationships_;
 
     std::vector<DRelId> allRelationships_;
 
-    std::unordered_map<DNodeId, std::vector<DRelId>> outgoing_;
-    std::unordered_map<DNodeId, std::vector<DRelId>> incoming_;
+    std::unordered_map<DNodeId, std::vector<DRelId>, IntStrongHash> outgoing_;
+    std::unordered_map<DNodeId, std::vector<DRelId>, IntStrongHash> incoming_;
   };
 
   struct DNodePropertyKey
@@ -170,7 +159,7 @@ struct std::hash<kernel::DNodePropertyKey>
 {
   size_t operator()(const kernel::DNodePropertyKey &x) const noexcept
   {
-    size_t h = std::hash<kernel::DNodeId>{}(x.node);
+    size_t h = IntStrongHash{}(x.node);
     common::hashCombine(h, x.property);
     return h;
   }
@@ -181,7 +170,7 @@ struct std::hash<kernel::DRelPropertyKey>
 {
   size_t operator()(const kernel::DRelPropertyKey &x) const noexcept
   {
-    size_t h = std::hash<kernel::DRelId>{}(x.rel);
+    size_t h = IntStrongHash{}(x.rel);
     common::hashCombine(h, x.property);
     return h;
   }
@@ -192,7 +181,7 @@ struct std::hash<kernel::DRelEndpointKey>
 {
   size_t operator()(const kernel::DRelEndpointKey &x) const noexcept
   {
-    size_t h = std::hash<kernel::DRelId>{}(x.rel);
+    size_t h = IntStrongHash{}(x.rel);
     common::hashCombine(h, static_cast<int>(x.endpoint));
     return h;
   }
@@ -207,8 +196,8 @@ namespace kernel
   {
   public:
     CachedDatabaseAccess(
-        kernel::InMemoryDatabase &db,
-        kernel::DatabaseMetrics &metrics)
+        InMemoryDatabase &db,
+        DatabaseMetrics &metrics)
         : db_{db},
           metrics_{metrics}
     {
@@ -245,17 +234,17 @@ namespace kernel
         DNodeId node,
         common::Direction direction);
 
-
     /**
      * reference to database metrics object within
      */
-    kernel::DatabaseMetrics& metrics() {
+    DatabaseMetrics &metrics()
+    {
       return metrics_;
     }
 
   private:
-    kernel::InMemoryDatabase &db_;
-    kernel::DatabaseMetrics &metrics_;
+    InMemoryDatabase &db_;
+    DatabaseMetrics &metrics_;
 
     // (dnodeId, string) -> val
     std::unordered_map<
@@ -278,13 +267,15 @@ namespace kernel
     // drelId -> string (rel. label)
     std::unordered_map<
         kernel::DRelId,
-        std::string>
+        std::string,
+        IntStrongHash>
         relTypeCache_;
 
     // (dnodeId, string) -> bool (haslabel?)
     std::unordered_map<
         DNodePropertyKey,
-        bool>
+        bool,
+        IntStrongHash>
         nodeLabelCache_;
   };
 }

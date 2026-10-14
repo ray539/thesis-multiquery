@@ -51,6 +51,13 @@ namespace execution
           kernel::DNodeId node = db_.endpoint(drel, p->endpoint);
           return db_.nodeHasLabel(node, p->label);
         }
+        else if (auto* p = std::get_if<ir::EndpointsEqual>(&atom))
+        {
+          kernel::DNodeId node1 = db_.endpoint(drel, common::Endpoint::Start);
+          kernel::DNodeId node2 = db_.endpoint(drel, common::Endpoint::End);
+          return node1 == node2;
+        }
+
         assert(false);
         return false;
       };

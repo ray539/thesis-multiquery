@@ -1,0 +1,59 @@
+
+    /**
+     * execution step2: build adjacency list based on QueryGraphIR
+     * - we treat each relationship as a 'node'
+     * - the edges can then be annotated with 4 types of adjacency, as given by `Adjacency`
+     */
+    std::vector<std::vector<QAdjacency>> buildQueryAdjacency(const ir_builder::QueryGraphIR &qg);
+
+    /**
+     *  execution step 3: choose order we should traverse relationships in
+     *  - the algorithm briefly works as follows
+     *  - while (not all rels processed)
+     *    - choose root rel with minimum |C[u]|/deg(u)
+     *    - extend this component as much as you can, choosing neighbors based on |C[u]| / (1 + number of bound neighbors of u)
+     *
+     */
+    std::vector<size_t> chooseRelationshipOrder(
+        const ir_builder::QueryGraphIR &qg,
+        const std::vector<std::vector<kernel::DRelId>> &candidateSets,
+        const std::vector<std::vector<QAdjacency>> &adj);
+
+    /**
+     * are two data graph relationships a,b adjacent with the specified adjacency?
+     */
+    bool areAdjacent(
+        kernel::CachedDatabaseAccess &db,
+        kernel::DRelId a,
+        kernel::DRelId b,
+        common::Adjacency adjacency);
+
+  /**
+   * This stragey will
+   * - build shared candidate sets
+   * - use the shared candidate sets to backtrack match ONE QUERY at a time
+   */
+  class ProcessSingleStrategy
+  {
+  public:
+    ProcessSingleStrategy(
+        ir_builder::BuildResult &&buildResult,
+        kernel::CachedDatabaseAccess &database
+      )
+        : buildResult_(std::move(buildResult)),
+          database_(database),
+          evaluator_(buildResult.predicateRegistry, database, database.metrics())
+    {
+    }
+    std::vector<QueryExecutionResult> run();
+
+  private:
+    // initialized by constructor
+    ir_builder::BuildResult buildResult_;
+    kernel::CachedDatabaseAccess database_;
+    execution::PredicateEvaluator evaluator_;
+
+    // built by the class
+    std::vector<std::vector<kernel::DRelId>> candidateSets_;
+    QueryExecutionResult processSingleQG(const ir_builder::QueryGraphIR &qg);
+  };

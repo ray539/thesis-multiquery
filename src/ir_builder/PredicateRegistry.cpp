@@ -43,6 +43,11 @@ namespace ir_builder
                "|" +
                encodeString(p->label);
       }
+      if (auto *p = std::get_if<EndpointsEqual>(&predicate))
+      {
+        return "EPE|";
+      }
+
       throw CanonicalizationError("invalid variant type");
     }
 
@@ -52,6 +57,7 @@ namespace ir_builder
         std::vector<AtomicRelPredicate> &atoms)
     {
 
+      // sort by canonical atomic predicate key
       std::sort(
           atoms.begin(),
           atoms.end(),
@@ -77,8 +83,11 @@ namespace ir_builder
       std::string ans;
       if (const auto *p = std::get_if<BaseRelPredicate>(&predicate))
       {
+        
+        auto atomicPredicatesCopy = p->atomicPredicates;
+        canonicalizeAtoms(atomicPredicatesCopy);
         ans = "BASE|";
-        for (const auto &atom : p->atomicPredicates)
+        for (const auto &atom : atomicPredicatesCopy)
         {
           ans += encodeString(atomicRelPredicateKey(atom));
         }
@@ -100,6 +109,8 @@ namespace ir_builder
     }
   }
 
+
+  // ---------------------- PREDICATE REGISTRY ---------------------------
   PredicateId PredicateRegistry::intern(RelPredicate predicate)
   {
     std::string key = predicate_key::predicateKey(predicate);
@@ -111,8 +122,7 @@ namespace ir_builder
     }
 
     // generate new id for the predicate
-    PredicateId new_id{
-        static_cast<int64_t>(predicates.size())};
+    PredicateId new_id{static_cast<int64_t>(predicates.size())};
 
     predicates.push_back(std::move(predicate));
     byKey.emplace(std::move(key), new_id);

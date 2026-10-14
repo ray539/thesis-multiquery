@@ -75,7 +75,7 @@ namespace ir_builder
      * returns the EIdxs in the block
      */
     std::vector<raw::EIdx> check_and_get_nodes_in_block(
-        const std::unordered_map<qg::VariableId, raw::EIdx> &varid_to_index,
+        const std::unordered_map<qg::VariableId, raw::EIdx, IntStrongHash> &varid_to_index,
         // std::unordered_map<raw::EIdx, size_t> node_to_occurrence_id,
         // size_t occurence_id,
         const qg::SharedBlock &block)
@@ -138,7 +138,7 @@ namespace ir_builder
      */
     BlockOccurrence process_block(
         const raw::EdgeGraphRaw &raw_adj,
-        const std::unordered_map<qg::VariableId, raw::EIdx> &varid_to_index,
+        const std::unordered_map<qg::VariableId, raw::EIdx, IntStrongHash> &varid_to_index,
         const qg::SharedBlock &block)
     {
       if (block.patternRelationshipIDs.empty())
@@ -169,9 +169,9 @@ namespace ir_builder
     }
 
     // mapping of qg.patternRelationship -> EIdx in our raw edge graph
-    std::unordered_map<qg::VariableId, raw::EIdx> get_varid_to_eidx(const qg::QueryGraph &queryGraph)
+    std::unordered_map<qg::VariableId, raw::EIdx, IntStrongHash> get_varid_to_eidx(const qg::QueryGraph &queryGraph)
     {
-      std::unordered_map<qg::VariableId, raw::EIdx> varid_to_index;
+      std::unordered_map<qg::VariableId, raw::EIdx, IntStrongHash> varid_to_index;
       for (size_t qrel_idx = 0; qrel_idx < queryGraph.patternRelationships.size(); ++qrel_idx)
       {
         const auto [_, inserted] = varid_to_index.emplace(queryGraph.patternRelationships[qrel_idx].variable, raw::EIdx(qrel_idx));
@@ -198,9 +198,9 @@ namespace ir_builder
     void registerOrValidateBlock(
         const BlockOccurrence &occurrence,
         const raw::EdgeGraphRaw &edge_graph_raw,
-        std::unordered_map<qg::BlockId, SharedBlockIR> &shared_block_of,
-        std::unordered_map<qg::BlockId, BlockShape> &blockshape_of,
-        const std::unordered_map<GlobalRelId, PredicateId> &signatures)
+        std::unordered_map<qg::BlockId, SharedBlockIR, IntStrongHash> &shared_block_of,
+        std::unordered_map<qg::BlockId, BlockShape, IntStrongHash> &blockshape_of,
+        const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &signatures)
     {
       auto [block_ir, shape] = makeSharedBlockIR(occurrence, edge_graph_raw, signatures);
       if (!blockshape_of.contains(occurrence.block_id))
@@ -217,11 +217,11 @@ namespace ir_builder
       }
     }
 
-    std::unordered_map<raw::EIdx, node_classification::nc> classify_nodes(
-        const std::unordered_map<raw::EIdx, std::vector<size_t>> &occs_of_node,
+    std::unordered_map<raw::EIdx, node_classification::nc, IntStrongHash> classify_nodes(
+        const std::unordered_map<raw::EIdx, std::vector<size_t>, IntStrongHash> &occs_of_node,
         const std::vector<BlockOccurrence> &block_occurrences)
     {
-      std::unordered_map<raw::EIdx, node_classification::nc> classification_of_node;
+      std::unordered_map<raw::EIdx, node_classification::nc, IntStrongHash> classification_of_node;
       for (auto &[node, occ_ids] : occs_of_node)
       {
         if (occ_ids.size() == 0)
@@ -249,17 +249,17 @@ namespace ir_builder
       }
     }
 
-    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, node_classification::nc>> analyseBlocks(
+    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, node_classification::nc, IntStrongHash>> analyseBlocks(
         const qg::QueryGraph &queryGraph,
         const raw::EdgeGraphRaw &raw_edge_graph,
-        std::unordered_map<qg::BlockId, SharedBlockIR> &shared_block_of,
-        std::unordered_map<qg::BlockId, BlockShape> &blockshape_of,
-        const std::unordered_map<GlobalRelId, PredicateId> &signatures)
+        std::unordered_map<qg::BlockId, SharedBlockIR, IntStrongHash> &shared_block_of,
+        std::unordered_map<qg::BlockId, BlockShape, IntStrongHash> &blockshape_of,
+        const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &signatures)
     {
       // mapping of qg.patternRelationship -> EIdx in our raw edge graph
-      std::unordered_map<qg::VariableId, raw::EIdx> varid_to_index = get_varid_to_eidx(queryGraph);
+      std::unordered_map<qg::VariableId, raw::EIdx, IntStrongHash> varid_to_index = get_varid_to_eidx(queryGraph);
       // mapping of node -> all block occurrences it occurs in
-      std::unordered_map<raw::EIdx, std::vector<size_t>> occs_of_node;
+      std::unordered_map<raw::EIdx, std::vector<size_t>, IntStrongHash> occs_of_node;
       for (auto &node : raw_edge_graph.all_nodes())
       {
         occs_of_node.emplace(node, std::vector<size_t>{});

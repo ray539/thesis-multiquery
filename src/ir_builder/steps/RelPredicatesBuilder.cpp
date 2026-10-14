@@ -257,6 +257,16 @@ namespace ir_builder
     {
       const qg::QueryGraph &qg = queryGraphs[qi];
 
+      // attach relevant predicate equals predicates
+      for (const auto &rel : qg.patternRelationships)
+      {
+        if (rel.startNode == rel.endNode)
+        {
+          GlobalRelId rel_global = ge.queryLocalToGlobals[qi].rel_to_globalID.at(rel.variable);
+          ge.relationships.at(rel_global).atomicPredicates.push_back(EndpointsEqual{});
+        }
+      }
+
       for (qg::ExprId predId : collectPredicatesFromQg(qg))
       {
         std::vector<qg::ExprId> atoms;

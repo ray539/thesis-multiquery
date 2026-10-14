@@ -1,79 +1,77 @@
 #pragma once
 #include <bits/stdc++.h>
 
-namespace common {
-template <typename T>
-inline void hashCombine(size_t& seed, const T& value) {
-  seed ^= std::hash<T>{}(value)
-        + 0x9e3779b97f4a7c15ULL
-        + (seed << 6)
-        + (seed >> 2);
-}
-
-
-enum class Direction
+namespace common
 {
-  Outgoing,
-  Incoming,
-};
-
-
-enum class Endpoint
-{
-  Start,
-  End
-};
-
-// (my endpoint), (neighbor endpoint)
-enum class Adjacency
-{
-  StartStart,
-  StartEnd,
-  EndStart,
-  EndEnd,
-  BoundaryToSB // boundary node to a shared block. One way edge which occurs when using shared blocks
-};
-
-
-inline Adjacency adjacencyOf(
-    Endpoint mine,
-    Endpoint theirs)
-{
-  if (
-      mine == Endpoint::Start &&
-      theirs == Endpoint::Start)
+  template <typename T>
+  inline void hashCombine(size_t &seed, const T &value)
   {
-
-    return Adjacency::StartStart;
+    seed ^= std::hash<T>{}(value) + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
   }
 
-  if (
-      mine == Endpoint::Start &&
-      theirs == Endpoint::End)
+  enum class Direction
   {
+    Outgoing,
+    Incoming,
+  };
 
-    return Adjacency::StartEnd;
+  enum class Endpoint
+  {
+    Start,
+    End
+  };
+
+  // (my endpoint), (neighbor endpoint)
+  enum class Adjacency
+  {
+    StartStart,
+    StartEnd,
+    EndStart,
+    EndEnd,
+    BoundaryToSB // boundary node to a shared block. One way edge which occurs when using shared blocks
+  };
+
+  inline Adjacency adjacencyOf(
+      Endpoint mine,
+      Endpoint theirs)
+  {
+    if (
+        mine == Endpoint::Start &&
+        theirs == Endpoint::Start)
+    {
+
+      return Adjacency::StartStart;
+    }
+
+    if (
+        mine == Endpoint::Start &&
+        theirs == Endpoint::End)
+    {
+
+      return Adjacency::StartEnd;
+    }
+
+    if (
+        mine == Endpoint::End &&
+        theirs == Endpoint::Start)
+    {
+
+      return Adjacency::EndStart;
+    }
+
+    return Adjacency::EndEnd;
   }
 
-  if (
-      mine == Endpoint::End &&
-      theirs == Endpoint::Start)
+  /**
+   * return first item of adjacency
+   * - myEndpoint(Start Start|End) = Start
+   * - myEndpoint(End   Start|End) = End
+   *
+   */
+  inline Endpoint myEndpoint(Adjacency adjacency)
   {
-
-    return Adjacency::EndStart;
-  }
-
-  return Adjacency::EndEnd;
-}
-
-/**
- * return first item of adjacency
- * - myEndpoint(Start Start|End) = Start
- * - myEndpoint(End   Start|End) = End
- * 
- */
-inline Endpoint myEndpoint(Adjacency adjacency) {
-  switch (adjacency) {
+    switch (adjacency)
+    {
     case Adjacency::StartStart:
     case Adjacency::StartEnd:
       return Endpoint::Start;
@@ -81,18 +79,20 @@ inline Endpoint myEndpoint(Adjacency adjacency) {
     case Adjacency::EndStart:
     case Adjacency::EndEnd:
       return Endpoint::End;
+    }
+    assert(false);
+    return Endpoint::End;
   }
-  assert(false);
-  return Endpoint::End;
-}
 
-/**
- * return second item of adjacency
- * - myEndpoint(Start|End Start) = Start
- * - myEndpoint(Start|End End) = End
- */
-inline Endpoint neighborEndpoint(Adjacency adjacency) {
-  switch (adjacency) {
+  /**
+   * return second item of adjacency
+   * - myEndpoint(Start|End Start) = Start
+   * - myEndpoint(Start|End End) = End
+   */
+  inline Endpoint neighborEndpoint(Adjacency adjacency)
+  {
+    switch (adjacency)
+    {
     case Adjacency::StartStart:
     case Adjacency::EndStart:
       return Endpoint::Start;
@@ -100,24 +100,25 @@ inline Endpoint neighborEndpoint(Adjacency adjacency) {
     case Adjacency::StartEnd:
     case Adjacency::EndEnd:
       return Endpoint::End;
+    }
+    assert(false);
+    return Endpoint::End;
   }
-  assert(false);
-  return Endpoint::End;
-}
 
-/**
- * If neighborEndpoint(adjancency) == Start then Outgoing else Incoming
- */
-inline Direction neighborDirection(Adjacency adjacency) {
-  return neighborEndpoint(adjacency)
-      == Endpoint::Start
-      ? Direction::Outgoing
-      : Direction::Incoming;
-}
+  /**
+   * If neighborEndpoint(adjancency) == Start then Outgoing else Incoming
+   */
+  inline Direction neighborDirection(Adjacency adjacency)
+  {
+    return neighborEndpoint(adjacency) == Endpoint::Start
+               ? Direction::Outgoing
+               : Direction::Incoming;
+  }
 
-
-inline Adjacency reverseAdjacency(Adjacency x) {
-  switch (x) {
+  inline Adjacency reverseAdjacency(Adjacency x)
+  {
+    switch (x)
+    {
     case Adjacency::StartStart:
       return Adjacency::StartStart;
 
@@ -129,37 +130,73 @@ inline Adjacency reverseAdjacency(Adjacency x) {
 
     case Adjacency::EndEnd:
       return Adjacency::EndEnd;
+    }
+    assert(false);
+    return Adjacency::StartStart;
   }
-  assert(false);
-  return Adjacency::StartStart;
-}
+} // namespace common;
 
+// strong typing
+template <typename Tag, typename IntType>
+struct IntStrong {
+  using underlying_type = IntType;
+  IntType val;
+  explicit IntStrong(IntType val) : val(val) {}
 
-}
+  bool operator==(const IntStrong&) const = default;
+  auto operator<=>(const IntStrong&) const = default;
 
-namespace kernel
-{
-  struct DNodeId
-  {
-    int64_t val;
-    explicit DNodeId(int64_t val) : val{val} {}
-    bool operator==(const DNodeId &) const = default;
-  };
+  IntStrong& operator+=(IntStrong rhs) {
+    this->val += rhs.val;
+    return *this;
+  }
 
-  struct DRelId
-  {
-    int64_t val;
-    explicit DRelId(int64_t val) : val{val} {}
-    bool operator==(const DRelId &) const = default;
-  };
-}
+  IntStrong& operator-=(IntStrong rhs) {
+    this->val -= rhs.val;
+    return *this;
+  }
 
-template <>
-struct std::hash<kernel::DNodeId>
-{
-  size_t operator()(const kernel::DNodeId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
+  friend IntStrong operator+(IntStrong lhs, IntStrong rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+
+  friend IntStrong operator-(IntStrong lhs, IntStrong rhs) {
+    lhs -= rhs;
+    return lhs;
   }
 };
 
+struct IntStrongHash {
+  template <typename T>
+  std::size_t operator() (const T& x) const noexcept
+  {
+    return std::hash<typename T::underlying_type>(x.val);
+  }
+};
+
+namespace query_graph {
+  struct ExprId_Tag {};
+  struct VariableId_Tag {};
+  struct BlockId_Tag {};
+  using ExprId = IntStrong<ExprId_Tag, int64_t>;
+  using VariableId = IntStrong<VariableId_Tag, int64_t>;
+  using BlockId = IntStrong<BlockId_Tag, int64_t>;
+
+};
+
+namespace kernel {
+  struct DNodeId_Tag {};
+  struct DRelId_Tag {};
+  using DNodeId = IntStrong<DNodeId_Tag, int64_t>;
+  using DRelId = IntStrong<DRelId_Tag, int64_t>;
+} // namespace kernel
+
+namespace ir_builder {
+  struct GlobalNodeId_Tag {};
+  struct GlobalRelId_Tag {};
+  struct PredicateId_Tag {};
+  using GlobalNodeId = IntStrong<GlobalNodeId_Tag, int64_t>;
+  using GlobalRelId = IntStrong<GlobalRelId_Tag, int64_t>;
+  using PredicateId = IntStrong<PredicateId_Tag, int64_t>;
+};

@@ -11,7 +11,7 @@ namespace ir_builder
   std::vector<AdjacencyRequirement> buildAdjacencyRequirements(
       GlobalRelId relId,
       GlobalEntities &ge,
-      const std::unordered_map<GlobalRelId, PredicateId> &levelPrev)
+      const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &levelPrev)
   {
     const auto &rel = ge.relationships.at(relId);
     // counts[{adj_type, predId}]
@@ -49,12 +49,9 @@ namespace ir_builder
 
     result.reserve(counts.size());
 
-    for (const auto &[key, multiplicity] :
-         counts)
+    for (const auto &[key, multiplicity] : counts)
     {
-
-      result.push_back(
-          AdjacencyRequirement{key.first, key.second, multiplicity});
+      result.push_back(AdjacencyRequirement{key.first, key.second, multiplicity});
     }
 
     return result;
@@ -65,13 +62,13 @@ namespace ir_builder
       GlobalEntities &ge,
       int maxLayers)
   {
-    std::vector<std::unordered_map<GlobalRelId, PredicateId>> signatures;
+    std::vector<std::unordered_map<GlobalRelId, PredicateId, IntStrongHash>> signatures;
     PredicateRegistry pRegistry;
 
     // build level 0
     // previous[relIdx] = predicate for relationship at index relId
     {
-      std::unordered_map<GlobalRelId, PredicateId> layer0;
+      std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> layer0;
       for (auto &[_, rel] : ge.relationships)
       {
         BaseRelPredicate predicate{.atomicPredicates = rel.atomicPredicates};
@@ -87,7 +84,7 @@ namespace ir_builder
     {
       // current[relIdx] = predicate for relationship at index relId
       std::vector<PredicateId> current;
-      std::unordered_map<GlobalRelId, PredicateId> levelk;
+      std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> levelk;
 
       for (auto &[relId, rel] : ge.relationships)
       {
@@ -113,7 +110,7 @@ namespace ir_builder
       signatures.push_back(levelk);
     }
 
-    return SignatureBuilderResult {
+    return SignatureBuilderResult{
         .signatures = signatures,
         .pRegistry = pRegistry};
   }

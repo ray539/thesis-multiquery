@@ -10,38 +10,6 @@ namespace ir_builder
     using std::runtime_error::runtime_error;
   };
 
-  class GlobalNodeId
-  {
-  public:
-    int64_t val;
-    GlobalNodeId() = default;
-    explicit GlobalNodeId(int64_t val) : val{val} {}
-    bool operator==(const GlobalNodeId &other) const
-    {
-      return val == other.val;
-    }
-  };
-
-  class GlobalRelId
-  {
-  public:
-    int64_t val;
-    GlobalRelId() = default;
-    explicit GlobalRelId(int64_t val) : val{val} {}
-    bool operator==(const GlobalRelId &other) const
-    {
-      return val == other.val;
-    }
-  };
-
-  class PredicateId
-  {
-  public:
-    int64_t val;
-    PredicateId() = default;
-    PredicateId(int64_t val) : val{val} {}
-  };
-
   // (r) -> r.prop == val
   struct RelPropertyEquals
   {
@@ -188,75 +156,39 @@ namespace ir_builder
    */
   struct SharedBlockIR
   {
+    struct EIdx_tag {};
+    using EIdx = IntStrong<EIdx_tag, size_t>;
+    using EdgeGraphSB = EdgeGraph<PredicateId, EIdx>;
 
-    struct EIdx
-    {
-      size_t val;
-      EIdx() = default;
-      EIdx(size_t val) : val(val)
-      {
-      }
-      bool operator==(const EIdx &) const = default;
-    };
     query_graph::BlockId block_id;
-    EdgeGraph<PredicateId, EIdx> edge_graph;
-    // backtracking MUST start here. If none, it means we are free to choose where to start backtracking
+    EdgeGraphSB edge_graph;
+    // local backtracking for the block 
+    // MUST start here. If none, it means we are free to choose where to start backtracking
     std::optional<EIdx> boundary_node; 
-
-    typedef EdgeGraph<PredicateId, EIdx> EdgeGraphSB;
-  };
-
-  namespace raw
-  {
-    // raw query graph, before collapsing shared blocks
-    struct EIdx
-    {
-      size_t val;
-      EIdx() = default;
-      EIdx(size_t val) : val(val)
-      {
-      }
-      bool operator==(const EIdx &) const = default;
-    };
-    typedef EdgeGraph<PatternRelationshipIR, EIdx> EdgeGraphRaw;
   };
 
   namespace collapsed
   {
     // collapsed query graph
-    struct EIdx
+    struct EIdx_tag {};
+    using EIdx = IntStrong<EIdx_tag, size_t>;
+    /**
+     * localized shared block for a specific EdgeGraph
+     */
+    struct SharedBlockReference
     {
-      size_t val;
-      EIdx() = default;
-      EIdx(size_t val) : val(val)
-      {
-      }
-      bool operator==(const EIdx &) const = default;
+      // use this to look back into the matched row to get the boundary DRel
+      query_graph::VariableId boundary_node;
+      query_graph::BlockId block_id;
+      std::unordered_map<SharedBlockIR::EIdx, query_graph::VariableId, IntStrongHash> back_mapping;
     };
-  }
 
-  /**
-   * localized shared block for a specific EdgeGraph
-   */
-  struct SharedBlockReference
-  {
-    collapsed::EIdx boundary_node;
-    query_graph::BlockId block_id;
-    std::unordered_map<SharedBlockIR::EIdx, PatternRelationshipIR> back_mapping;
-  };
-
-  namespace collapsed
-  {
+    /**
+     * final edge graph for execution
+     */
     typedef EdgeGraph<std::variant<PatternRelationshipIR, SharedBlockReference>, EIdx> EdgeGraphCollapsed;
     typedef std::variant<PatternRelationshipIR, SharedBlockReference> NodeType;
-  };
-
-  // relId, endpoint
-  struct Incidence
-  {
-    GlobalRelId relId;
-    common::Endpoint endpoint;
-  };
+  }
 
   class PredicateRegistry
   {
@@ -300,14 +232,14 @@ namespace ir_builder
      * - not completely necessary to the executable layer, but useful for debugging
      */
     std::vector<
-        std::unordered_map<GlobalRelId, PredicateId>>
+        std::unordered_map<GlobalRelId, PredicateId, IntStrongHash>>
         signatures;
 
     /**
      * a shared block is an context indifferent subgraph which can occur in
      * multiple times in one query graph / multiple query graphs
      */
-    std::unordered_map<query_graph::BlockId, SharedBlockIR> shared_block_registry;
+    std::unordered_map<query_graph::BlockId, SharedBlockIR, IntStrongHash> shared_block_registry;
   };
 
   class IRBuilder
@@ -316,6 +248,7 @@ namespace ir_builder
     IRBuilder() {}
     BuildResult run(const std::vector<query_graph::QueryGraph> &queryGraphs, int maxLayer = 3);
   };
+
 
   namespace expression_recognition
   {
@@ -365,48 +298,3 @@ namespace ir_builder
     std::optional<ParsedHasRelType> hasRelType(const qg::QueryGraph &qg, qg::ExprId id);
   }
 } // namespace ir_builder
-
-template <>
-struct std::hash<ir_builder::GlobalNodeId>
-{
-  std::size_t operator()(const ir_builder::GlobalNodeId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
-
-template <>
-struct std::hash<ir_builder::GlobalRelId>
-{
-  std::size_t operator()(const ir_builder::GlobalRelId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
-
-template <>
-struct std::hash<ir_builder::SharedBlockIR::EIdx>
-{
-  std::size_t operator()(const ir_builder::SharedBlockIR::EIdx &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
-
-template <>
-struct std::hash<ir_builder::raw::EIdx>
-{
-  std::size_t operator()(const ir_builder::raw::EIdx &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
-
-template <>
-struct std::hash<ir_builder::collapsed::EIdx>
-{
-  std::size_t operator()(const ir_builder::collapsed::EIdx &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};

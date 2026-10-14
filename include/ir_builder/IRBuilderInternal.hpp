@@ -30,9 +30,16 @@ namespace ir_builder
   struct QueryLocalToGlobal
   {
     // local node VariableId -> GlobalNodeId
-    std::unordered_map<query_graph::VariableId, GlobalNodeId> node_to_globalID;
+    std::unordered_map<query_graph::VariableId, GlobalNodeId, IntStrongHash> node_to_globalID;
     // local relationship VariableId -> index of relationship in
-    std::unordered_map<query_graph::VariableId, GlobalRelId> rel_to_globalID;
+    std::unordered_map<query_graph::VariableId, GlobalRelId, IntStrongHash> rel_to_globalID;
+  };
+
+  // relId, endpoint
+  struct Incidence
+  {
+    GlobalRelId relId;
+    common::Endpoint endpoint;
   };
 
   struct GlobalEntities
@@ -41,10 +48,10 @@ namespace ir_builder
     std::vector<QueryLocalToGlobal> queryLocalToGlobals;
 
     // list of internal pattern relationships
-    std::unordered_map<GlobalRelId, PatternRelationshipInternal> relationships;
+    std::unordered_map<GlobalRelId, PatternRelationshipInternal, IntStrongHash> relationships;
 
     // global node id -> relationships incident to it
-    std::unordered_map<GlobalNodeId, std::vector<Incidence>> adjListNode;
+    std::unordered_map<GlobalNodeId, std::vector<Incidence>, IntStrongHash> adjListNode;
   };
 
   inline GlobalEntities buildGlobalEntities(const std::vector<query_graph::QueryGraph> &queryGraphs);
@@ -59,7 +66,7 @@ namespace ir_builder
   struct SignatureBuilderResult
   {
     // signatures[level][global id of relationship] = signature for that relationship
-    std::vector<std::unordered_map<GlobalRelId, PredicateId>> signatures;
+    std::vector<std::unordered_map<GlobalRelId, PredicateId, IntStrongHash>> signatures;
     // map of predId -> RelPredicate
     PredicateRegistry pRegistry;
   };
@@ -68,6 +75,21 @@ namespace ir_builder
       const std::vector<query_graph::QueryGraph> &queryGraphs,
       GlobalEntities &ge,
       int maxLayers);
+
+  namespace raw
+  {
+    // raw query graph, before collapsing shared blocks
+    struct EIdx
+    {
+      size_t val;
+      EIdx() = default;
+      EIdx(size_t val) : val(val)
+      {
+      }
+      bool operator==(const EIdx &) const = default;
+    };
+    typedef EdgeGraph<PatternRelationshipIR, EIdx> EdgeGraphRaw;
+  };
 
   namespace edge_graph_helpers
   {
@@ -78,7 +100,8 @@ namespace ir_builder
      */
     struct BlockOccurrence
     {
-      struct Boundary {
+      struct Boundary
+      {
         // local index. Can be used to index outer_node_indices
         size_t boundary_local_index;
         // global index
@@ -129,8 +152,8 @@ namespace ir_builder
      */
     raw::EdgeGraphRaw buildRawEdgeGraph(
         const query_graph::QueryGraph &queryGraph,
-        QueryLocalToGlobal &local_to_global,
-        std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships);
+        const QueryLocalToGlobal &local_to_global,
+        const std::unordered_map<GlobalRelId, PatternRelationshipInternal, IntStrongHash> &global_relationships);
 
     /**
      * This will
@@ -141,12 +164,12 @@ namespace ir_builder
      * - block_occurrences: `vector<BlockOccurrence>`: list of block occurrence objects
      * - classification_of_node: classifies each node on whether it belongs to the inner, outer or boundary of a shared block
      */
-    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, node_classification::nc>> analyseBlocks(
+    std::pair<std::vector<BlockOccurrence>, std::unordered_map<raw::EIdx, node_classification::nc, IntStrongHash>> analyseBlocks(
         const qg::QueryGraph &queryGraph,
         const raw::EdgeGraphRaw &raw_edge_graph,
-        std::unordered_map<qg::BlockId, SharedBlockIR> &shared_block_of,
-        std::unordered_map<qg::BlockId, BlockShape> &blockshape_of,
-        const std::unordered_map<GlobalRelId, PredicateId> &signatures);
+        std::unordered_map<qg::BlockId, SharedBlockIR, IntStrongHash> &shared_block_of,
+        std::unordered_map<qg::BlockId, BlockShape, IntStrongHash> &blockshape_of,
+        const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &signatures);
 
     /**
      * turn an `BlockOccurrence` to an `SharedBlockIR`.
@@ -157,8 +180,7 @@ namespace ir_builder
     std::pair<SharedBlockIR, BlockShape> makeSharedBlockIR(
         const BlockOccurrence &occurrence,
         const raw::EdgeGraphRaw &edge_graph_raw,
-        const std::unordered_map<GlobalRelId, PredicateId> &signatures);
-
+        const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &signatures);
 
     /**
      * step 3 (final) step of the collapsed edge graph building process
@@ -166,8 +188,31 @@ namespace ir_builder
     collapsed::EdgeGraphCollapsed buildCollapsedGraph(
         const raw::EdgeGraphRaw &raw_edge_graph,
         const std::vector<BlockOccurrence> &block_occurrences,
-        const std::unordered_map<ir_builder::raw::EIdx, node_classification::nc> &classification_of_node);
+        const std::unordered_map<ir_builder::raw::EIdx, node_classification::nc, IntStrongHash> &classification_of_node);
 
   } // namespace edge_graph_helpers
 
+  /**
+   * Builds:
+   *
+   * 1. one collapsed EdgeGraph per query;
+   * 2. the global context-independent SharedBlockIR registry.
+   */
+  std::pair<
+      std::vector<collapsed::EdgeGraphCollapsed>,
+      std::unordered_map<qg::BlockId, SharedBlockIR, IntStrongHash>>
+  buildCollapsedEdgeGraphs(
+      const std::vector<qg::QueryGraph> &queryGraphs,
+      const GlobalEntities &ge,
+      const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &signatures);
+
 }
+
+template <>
+struct std::hash<ir_builder::raw::EIdx>
+{
+  std::size_t operator()(const ir_builder::raw::EIdx &id) const noexcept
+  {
+    return std::hash<int64_t>{}(id.val);
+  }
+};

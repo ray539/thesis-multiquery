@@ -15,8 +15,8 @@ namespace ir_builder
      */
     inline std::vector<PatternRelationshipIR> buildRelationshipIRs(
         const qg::QueryGraph &queryGraph,
-        QueryLocalToGlobal &local_to_global,
-        std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships)
+        const QueryLocalToGlobal &local_to_global,
+        const std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships)
     {
       std::vector<PatternRelationshipIR> result;
       for (const auto &qrel : queryGraph.patternRelationships)
@@ -80,8 +80,8 @@ namespace ir_builder
 
     raw::EdgeGraphRaw buildRawEdgeGraph(
         const qg::QueryGraph &queryGraph,
-        QueryLocalToGlobal &local_to_global,
-        std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships)
+        const QueryLocalToGlobal &local_to_global,
+        const std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships)
     {
       std::vector<PatternRelationshipIR> qrels = buildRelationshipIRs(queryGraph, local_to_global, global_relationships);
       auto raw_adj = buildRawAdjacency(qrels);

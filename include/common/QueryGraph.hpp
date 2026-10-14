@@ -1,34 +1,9 @@
 #pragma once
 #include <bits/stdc++.h>
+#include <common/Common.hpp>
 
 namespace query_graph
 {
-  struct ExprId
-  {
-    int64_t val;
-    ExprId(int64_t val) : val{val} {}
-  };
-  class VariableId
-  {
-  public:
-    int64_t val;
-    VariableId() = default;
-    VariableId(int64_t val) : val{val} {}
-    bool operator==(const VariableId &other) const
-    {
-      return val == other.val;
-    }
-  };
-
-  class BlockId
-  {
-  public:
-    int64_t val;
-    BlockId() = default;
-    BlockId(int64_t val) : val{val} {}
-  };
-
-
   enum class ValueType
   {
     Node,
@@ -160,7 +135,7 @@ namespace query_graph
     std::vector<Expression> expressions;
     ExprId add(Expression expr)
     {
-      ExprId id = expressions.size();
+      ExprId id = ExprId(expressions.size());
       expressions.push_back(std::move(expr));
       return id;
     }
@@ -210,20 +185,20 @@ namespace query_graph
   };
 }
 
-template <>
-struct std::hash<query_graph::VariableId>
-{
-  std::size_t operator()(const query_graph::VariableId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
+// template <>
+// struct std::hash<query_graph::VariableId>
+// {
+//   std::size_t operator()(const query_graph::VariableId &id) const noexcept
+//   {
+//     return std::hash<int64_t>{}(id.val);
+//   }
+// };
 
-template <>
-struct std::hash<query_graph::BlockId>
-{
-  std::size_t operator()(const query_graph::BlockId &id) const noexcept
-  {
-    return std::hash<int64_t>{}(id.val);
-  }
-};
+// template <>
+// struct std::hash<query_graph::BlockId>
+// {
+//   std::size_t operator()(const query_graph::BlockId &id) const noexcept
+//   {
+//     return std::hash<int64_t>{}(id.val);
+//   }
+// };
