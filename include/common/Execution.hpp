@@ -95,6 +95,10 @@ namespace execution
   // Context-independent row using SharedBlockIR-local EIdx values.
   // ---------------------------------------------------------------------------
 
+  /**
+   * fields
+   * - `relationships: map<SB::EIdx, DRelId`: the actual embedding data
+   */
   struct SharedBlockRow
   {
     std::unordered_map<

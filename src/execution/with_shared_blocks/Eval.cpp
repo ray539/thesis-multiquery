@@ -23,6 +23,7 @@ namespace execution
   // ===========================================================================
   // SharedBlockIterator
   // ===========================================================================
+  // TODO: refactor shared block related stuff in a different file
 
   std::optional<SharedBlockRow>
   SharedBlockIterator::next()
@@ -68,35 +69,21 @@ namespace execution
             .boundary = boundary}};
   }
 
-  SharedBlockIteratorManager::Entry &
-  SharedBlockIteratorManager::getOrCreateEntry(
-      const SharedBlockCacheKey &key)
+  // TODO: 
+  // - look at the Entry class (Execution.hpp), solve errors here (entry.iterator)
+  SharedBlockIteratorManager::Entry& SharedBlockIteratorManager::getOrCreateEntry(const SharedBlockCacheKey &key)
   {
-    auto it =
-        entries_.find(key);
-
+    auto it = entries_.find(key);
     if (it != entries_.end())
     {
       return *it->second;
     }
 
-    auto entry =
-        std::make_unique<Entry>();
-
-    entry->producer.emplace(
-        makeProducer(
-            key.block_id,
-            key.boundary));
-
-    Entry *result =
-        entry.get();
-
-    entries_.emplace(
-        key,
-        std::move(entry));
-
+    auto entry = std::make_unique<Entry>();
+    entry->producer.emplace(makeProducer(key.block_id, key.boundary));
+    Entry *result = entry.get();
+    entries_.emplace(key, std::move(entry));
     ++metrics_.cacheEntriesCreated;
-
     return *result;
   }
 
@@ -120,8 +107,7 @@ namespace execution
       ++(*entry.iterator);
     }
 
-    if (*entry.iterator ==
-        entry.producer->end())
+    if (*entry.iterator == entry.producer->end())
     {
       entry.exhausted = true;
 
@@ -130,8 +116,7 @@ namespace execution
       return false;
     }
 
-    entry.rows.push_back(
-        **entry.iterator);
+    entry.rows.push_back(**entry.iterator);
 
     ++metrics_.rowsProduced;
 
@@ -942,21 +927,17 @@ namespace execution
       for (const auto &[innerIdx, drel] : blockRow->relationships)
       {
         if (!reference.back_mapping.contains(innerIdx)) {
-          // duplicated inner boundary (which is absent from back mapping)
+          // blockRow: SB::EIdx -> Drel
+          // back_mapping: SB::EIdx -> VarId
+          // - by design, back mapping doesn't contain the shared boundary
+          //   because it is already matched
           continue;
         }
-        qg::VariableId qvar = reference.back_mapping.at(innerIdx);
-        auto existing = embedding.relationships.find(qvar);
 
-        // Usually this is the duplicated boundary.
-        if (existing != embedding.relationships.end())
-        {
-          if (existing->second != drel)
-          {
-            valid = false;
-            break;
-          }
-          continue;
+        qg::VariableId qvar = reference.back_mapping.at(innerIdx);
+        if (embedding.relationships.contains(qvar)) {
+          // all qvars in the block should be new
+          throw std::logic_error("shared block variable appears in outer embedding");
         }
 
         if (usedRelationships.contains(drel))
@@ -964,15 +945,18 @@ namespace execution
           valid = false;
           break;
         }
+
         embedding.relationships.emplace(qvar, drel);
         usedRelationships.insert(drel);
         newlyBound.push_back(qvar);
       }
 
+      // restore to state before extending with this shared block
+      // TODO: refactor this part, maybe 2 functions 'can_extend' and 'extend'.
+      // use 2 passes
       if (!valid)
       {
         ++metrics.sharedBlockRowsRejectedByOuterUniqueness;
-
         for (qg::VariableId qvar : newlyBound)
         {
           k::DRelId drel = embedding.relationships.at(qvar);
@@ -983,7 +967,6 @@ namespace execution
       }
 
       processed.insert(qidx);
-
       for (auto &&result :
            enumerateOuterDFS(
                edgeGraph,
@@ -995,6 +978,8 @@ namespace execution
         co_yield Embedding{result};
       }
 
+      // 'un-extend' the current embedding
+      // TODO: refactor this part
       processed.erase(qidx);
       for (qg::VariableId qvar : newlyBound)
       {
