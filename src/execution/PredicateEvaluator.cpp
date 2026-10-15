@@ -124,10 +124,10 @@ namespace execution
               { return a.size() < b.size(); });
 
     // assignedSlot[ri] = index of rel idx assigned to ri
-    std::unordered_map<kernel::DRelId, size_t> assignedSlot;
+    std::unordered_map<kernel::DRelId, size_t, IntStrongHash> assignedSlot;
 
     // Kuhn's algorithm? idk tbh
-    auto augment = [&](auto &&augment, size_t slot, std::unordered_set<kernel::DRelId> &seen) -> bool
+    auto augment = [&](auto &&augment, size_t slot, std::unordered_set<kernel::DRelId, IntStrongHash> &seen) -> bool
     {
       for (kernel::DRelId candidate : options[slot])
       {
@@ -147,7 +147,7 @@ namespace execution
 
     for (size_t slot = 0; slot < options.size(); ++slot)
     {
-      std::unordered_set<kernel::DRelId> seen;
+      std::unordered_set<kernel::DRelId, IntStrongHash> seen;
       if (!augment(augment, slot, seen))
       {
         return false;

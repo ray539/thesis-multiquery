@@ -10,23 +10,12 @@ namespace execution
         kernel::DRelId theirs,
         common::Adjacency adjacency)
     {
-      if (adjacency ==
-          common::Adjacency::BoundaryToSB)
+      if (adjacency == common::Adjacency::BoundaryToSB)
       {
-        throw std::logic_error(
-            "BoundaryToSB is not a data-graph adjacency constraint");
+        throw std::logic_error("BoundaryToSB is not a data-graph adjacency constraint");
       }
-
-      kernel::DNodeId mineNode =
-          db.endpoint(
-              mine,
-              common::myEndpoint(adjacency));
-
-      kernel::DNodeId theirNode =
-          db.endpoint(
-              theirs,
-              common::neighborEndpoint(adjacency));
-
+      kernel::DNodeId mineNode = db.endpoint(mine, common::myEndpoint(adjacency));
+      kernel::DNodeId theirNode = db.endpoint(theirs, common::neighborEndpoint(adjacency));
       return mineNode == theirNode;
     }
   }
@@ -55,8 +44,7 @@ namespace execution
   // SharedBlockIteratorManager
   // ===========================================================================
 
-  SharedBlockIterator
-  SharedBlockIteratorManager::newIterator(
+  SharedBlockIterator SharedBlockIteratorManager::newIterator(
       qg::BlockId block_id,
       std::optional<k::DRelId> boundary)
   {
@@ -113,8 +101,7 @@ namespace execution
   }
 
   bool
-  SharedBlockIteratorManager::produceOne(
-      Entry &entry)
+  SharedBlockIteratorManager::produceOne(Entry &entry)
   {
     if (entry.exhausted)
     {
@@ -125,9 +112,7 @@ namespace execution
 
     if (!entry.started)
     {
-      entry.iterator.emplace(
-          entry.producer->begin());
-
+      entry.iterator.emplace(entry.producer->begin());
       entry.started = true;
     }
     else
@@ -461,8 +446,7 @@ namespace execution
 
     auto &calls =
         metrics_
-            .recursiveCallsAtDepth[
-                block.block_id];
+            .recursiveCallsAtDepth[block.block_id];
 
     if (calls.size() <= depth)
     {
@@ -638,30 +622,25 @@ namespace execution
   // Executor structural helpers
   // ===========================================================================
 
-  bool
-  Executor::sharedBlockEligible(
-      const ib::collapsed::SharedBlockReference
-          &reference,
+  bool Executor::sharedBlockEligible(
+      const ib::collapsed::SharedBlockReference &reference,
       const Embedding &embedding) const
   {
-    const ib::SharedBlockIR &block =
-        buildResult_
-            .shared_block_registry
-            .at(reference.block_id);
+    const ib::SharedBlockIR &block = buildResult_
+                                         .shared_block_registry
+                                         .at(reference.block_id);
 
     if (!block.boundary_node)
     {
       return true;
     }
 
-    return embedding.relationships.contains(
-        reference.boundary_node);
+    return embedding.relationships.contains(reference.boundary_node);
   }
 
   std::vector<Executor::BoundConstraint>
   Executor::regularBoundConstraints(
-      const ib::collapsed::EdgeGraphCollapsed
-          &edgeGraph,
+      const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
       ib::collapsed::EIdx current,
       const Embedding &embedding,
       const std::unordered_set<
@@ -670,175 +649,52 @@ namespace execution
   {
     std::vector<BoundConstraint> result;
 
-    std::set<std::pair<size_t, int>>
-        seen;
-
-    // current -> processed
-    for (const auto &edge :
-         edgeGraph.adj(current))
+    // (collapsed_idx, adjtype) set just in case there are duplicate edge graph edges
+    std::set<std::pair<ib::collapsed::EIdx, int>> seen;
+    for (const auto &edge : edgeGraph.adj(current))
     {
-      if (!isOrdinaryAdjacency(
-              edge.adjType))
-      {
+      if (!isOrdinaryAdjacency(edge.adjType))
         continue;
-      }
 
-      if (!processed.contains(
-              edge.other))
-      {
+      if (!processed.contains(edge.other))
         continue;
-      }
 
-      auto otherNode =
-          edgeGraph.node_at(
-              edge.other);
-
-      const auto *otherRel =
-          std::get_if<
-              ib::PatternRelationshipIR>(
-              &otherNode);
-
+      auto otherNode = edgeGraph.node_at(edge.other);
+      const auto *otherRel = std::get_if<ib::PatternRelationshipIR>(&otherNode);
       if (!otherRel)
+        continue;
+
+      if (!embedding.relationships.contains(otherRel->lv))
+        continue;
+
+      if (!seen.insert({edge.other, (int)edge.adjType}).second)
       {
+        // duplicate edge
         continue;
       }
-
-      auto embeddingIt =
-          embedding.relationships.find(
-              otherRel->lv);
-
-      if (embeddingIt ==
-          embedding.relationships.end())
-      {
-        continue;
-      }
-
-      auto key =
-          std::pair{
-              edge.other.val,
-              static_cast<int>(
-                  edge.adjType)};
-
-      if (!seen.insert(key).second)
-      {
-        continue;
-      }
-
-      result.push_back(
-          BoundConstraint{
-              .adjacency =
-                  edge.adjType,
-              .otherDRel =
-                  embeddingIt->second});
-    }
-
-    // Also support ordinary edges stored only in the reverse
-    // direction.
-    for (ib::collapsed::EIdx otherIdx :
-         processed)
-    {
-      auto otherNode =
-          edgeGraph.node_at(
-              otherIdx);
-
-      const auto *otherRel =
-          std::get_if<
-              ib::PatternRelationshipIR>(
-              &otherNode);
-
-      if (!otherRel)
-      {
-        continue;
-      }
-
-      auto embeddingIt =
-          embedding.relationships.find(
-              otherRel->lv);
-
-      if (embeddingIt ==
-          embedding.relationships.end())
-      {
-        continue;
-      }
-
-      for (const auto &edge :
-           edgeGraph.adj(otherIdx))
-      {
-        if (edge.other != current)
-        {
-          continue;
-        }
-
-        if (!isOrdinaryAdjacency(
-                edge.adjType))
-        {
-          continue;
-        }
-
-        common::Adjacency reversed =
-            common::reverseAdjacency(
-                edge.adjType);
-
-        auto key =
-            std::pair{
-                otherIdx.val,
-                static_cast<int>(
-                    reversed)};
-
-        if (!seen.insert(key).second)
-        {
-          continue;
-        }
-
-        result.push_back(
-            BoundConstraint{
-                .adjacency = reversed,
-                .otherDRel =
-                    embeddingIt->second});
-      }
+      result.push_back(BoundConstraint{
+          .adjacency = edge.adjType,
+          .otherDRel = embedding.relationships.at(otherRel->lv)});
     }
 
     return result;
   }
 
-  k::RelationshipCursor
-  Executor::regularCandidateCursor(
-      const std::vector<BoundConstraint>
-          &constraints)
+  k::RelationshipCursor Executor::regularCandidateCursor(const std::vector<BoundConstraint> &constraints)
   {
     if (constraints.empty())
-    {
-      return cachedDatabase_
-          .getRelationshipCursor();
-    }
+      return cachedDatabase_.getRelationshipCursor();
+    const BoundConstraint &source = constraints.front();
 
-    const BoundConstraint &source =
-        constraints.front();
+    k::DNodeId sharedNode = cachedDatabase_.endpoint(source.otherDRel, common::neighborEndpoint(source.adjacency));
 
-    k::DNodeId sharedNode =
-        cachedDatabase_.endpoint(
-            source.otherDRel,
-            common::neighborEndpoint(
-                source.adjacency));
-
-    common::Endpoint myEndpoint =
-        common::myEndpoint(
-            source.adjacency);
-
-    return cachedDatabase_.adjacent(
-        sharedNode,
-        directionForEndpoint(
-            myEndpoint));
+    common::Endpoint myEndpoint = common::myEndpoint(source.adjacency);
+    return cachedDatabase_.adjacent(sharedNode, directionForEndpoint(myEndpoint));
   }
 
-  bool
-  Executor::satisfiesConstraints(
-      k::DRelId candidate,
-      const std::vector<BoundConstraint>
-          &constraints)
+  bool Executor::satisfiesConstraints(k::DRelId candidate, const std::vector<BoundConstraint> &constraints)
   {
-    for (const auto &constraint :
-         constraints)
+    for (const auto &constraint : constraints)
     {
       if (!areAdjacent(
               cachedDatabase_,
@@ -857,174 +713,95 @@ namespace execution
   // Dynamic structural order
   // ---------------------------------------------------------------------------
 
-  std::optional<ib::collapsed::EIdx>
-  Executor::chooseNextOuterNode(
-      const ib::collapsed::EdgeGraphCollapsed
-          &edgeGraph,
+  std::optional<ib::collapsed::EIdx> Executor::chooseNextOuterNode(
+      const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
       const Embedding &embedding,
-      const std::unordered_set<
-          ib::collapsed::EIdx,
-          IntStrongHash> &processed) const
+      const std::unordered_set<ib::collapsed::EIdx, IntStrongHash> &processed) const
   {
-    const size_t n =
-        edgeGraph.num_nodes();
+    const size_t n = edgeGraph.num_nodes();
 
-    auto eligible =
-        [&](ib::collapsed::EIdx idx)
-        {
-          auto node =
-              edgeGraph.node_at(idx);
-
-          if (auto *block =
-                  std::get_if<
-                      ib::collapsed::
-                          SharedBlockReference>(
-                      &node))
-          {
-            return sharedBlockEligible(
-                *block,
-                embedding);
-          }
-
-          return true;
-        };
-
-    // -----------------------------------------------------------------------
-    // First node:
-    //
-    // Always choose a regular relationship if one exists.
-    // -----------------------------------------------------------------------
+    /**
+     * either
+     * - not a SB reference
+     * - if SB reference: whether boundary node has already been matched
+     */
+    auto eligible = [&](ib::collapsed::EIdx idx)
+    {
+      auto node = edgeGraph.node_at(idx);
+      if (auto *block = std::get_if<ib::collapsed::SharedBlockReference>(&node))
+      {
+        return sharedBlockEligible(*block, embedding);
+      }
+      return true;
+    };
 
     if (processed.empty())
     {
-      std::optional<
-          ib::collapsed::EIdx>
-          bestRegular;
-
+      // no edge graph nodes have been processed yet.
+      // choose best regular node (which is not a SharedBlockReference)
+      std::optional<ib::collapsed::EIdx> bestRegular;
       size_t bestDegree = 0;
-
       for (size_t i = 0; i < n; ++i)
       {
         ib::collapsed::EIdx idx{i};
+        auto node = edgeGraph.node_at(idx);
 
-        auto node =
-            edgeGraph.node_at(idx);
-
-        if (!std::holds_alternative<
-                ib::PatternRelationshipIR>(
-                node))
-        {
+        if (!std::holds_alternative<ib::PatternRelationshipIR>(node))
           continue;
-        }
 
-        size_t degree =
-            edgeGraph.adj(idx).size();
+        size_t degree = edgeGraph.adj(idx).size();
 
-        if (
-            !bestRegular ||
-            degree > bestDegree ||
-            (degree == bestDegree &&
-             idx.val <
-                 bestRegular->val))
+        if (!bestRegular || degree > bestDegree)
         {
           bestRegular = idx;
           bestDegree = degree;
         }
       }
-
       if (bestRegular)
       {
         return bestRegular;
       }
 
-      // The whole graph consists of shared block references.
-      // Only a boundary-free block can start without context.
-      for (size_t i = 0; i < n; ++i)
-      {
-        ib::collapsed::EIdx idx{i};
-
-        if (eligible(idx))
-        {
-          return idx;
-        }
-      }
-
-      throw std::logic_error(
-          "Collapsed graph has no valid starting node");
+      // The whole graph is a shared block reference.
+      if (edgeGraph.num_nodes() != 1 || !eligible(ib::collapsed::EIdx(0)))
+        throw std::logic_error("Collapsed graph has no valid starting node");
+      return ib::collapsed::EIdx(0);
     }
 
-    // -----------------------------------------------------------------------
-    // Frontier = outgoing neighbors of the processed component.
-    // This naturally respects one-way BoundaryToSB.
-    // -----------------------------------------------------------------------
-
-    std::unordered_set<
-        ib::collapsed::EIdx,
-        IntStrongHash>
-        frontier;
-
+    // some EIdxs have already been processed. Pick next node from 'frontier',
+    // ie nodes adjacent to those already processed
+    std::unordered_set<ib::collapsed::EIdx, IntStrongHash> frontier;
     std::unordered_map<
         ib::collapsed::EIdx,
         size_t,
         IntStrongHash>
         processedNeighborCount;
 
-    for (ib::collapsed::EIdx done :
-         processed)
+    for (ib::collapsed::EIdx done : processed)
     {
-      for (const auto &edge :
-           edgeGraph.adj(done))
+      for (const auto &edge : edgeGraph.adj(done))
       {
-        if (processed.contains(
-                edge.other))
-        {
+        if (processed.contains(edge.other))
           continue;
-        }
-
-        frontier.insert(
-            edge.other);
-
-        ++processedNeighborCount[
-            edge.other];
+        frontier.insert(edge.other);
+        ++processedNeighborCount[edge.other];
       }
     }
 
-    std::optional<ib::collapsed::EIdx>
-        best;
-
-    size_t bestBoundNeighbors = 0;
-    size_t bestDegree = 0;
-
-    for (ib::collapsed::EIdx idx :
-         frontier)
+    std::optional<ib::collapsed::EIdx> best;
+    // (numBoundNeighbors, degree)
+    std::pair<int, int> best_key{-1, -1};
+    for (ib::collapsed::EIdx idx : frontier)
     {
       if (!eligible(idx))
-      {
         continue;
-      }
-
-      size_t boundNeighbors =
-          processedNeighborCount.at(idx);
-
-      size_t degree =
-          edgeGraph.adj(idx).size();
-
-      if (
-          !best ||
-          boundNeighbors >
-              bestBoundNeighbors ||
-          (boundNeighbors ==
-               bestBoundNeighbors &&
-           degree > bestDegree) ||
-          (boundNeighbors ==
-               bestBoundNeighbors &&
-           degree == bestDegree &&
-           idx.val < best->val))
+      size_t boundNeighbors = processedNeighborCount.at(idx);
+      size_t degree = edgeGraph.adj(idx).size();
+      std::pair<int, int> this_key(boundNeighbors, degree);
+      if (this_key > best_key)
       {
         best = idx;
-        bestBoundNeighbors =
-            boundNeighbors;
-        bestDegree = degree;
+        best_key = this_key;
       }
     }
 
@@ -1033,46 +810,9 @@ namespace execution
       return best;
     }
 
-    // -----------------------------------------------------------------------
-    // Disconnected component:
-    // start another regular relationship if possible.
-    // -----------------------------------------------------------------------
-
-    for (size_t i = 0; i < n; ++i)
-    {
-      ib::collapsed::EIdx idx{i};
-
-      if (processed.contains(idx))
-      {
-        continue;
-      }
-
-      auto node =
-          edgeGraph.node_at(idx);
-
-      if (std::holds_alternative<
-              ib::PatternRelationshipIR>(
-              node))
-      {
-        return idx;
-      }
-    }
-
-    // Possibly an independent/root shared block.
-    for (size_t i = 0; i < n; ++i)
-    {
-      ib::collapsed::EIdx idx{i};
-
-      if (
-          !processed.contains(idx) &&
-          eligible(idx))
-      {
-        return idx;
-      }
-    }
-
-    throw std::logic_error(
-        "No executable node remains in collapsed edge graph");
+    // some nodes have already been processed, but frontier is empty
+    // - means that graph was disconnected. (Shouldn't happen)
+    throw std::logic_error("couldn't find next node. Edge graph has bad shape / was disconnected");
   }
 
   // ===========================================================================
@@ -1081,287 +821,168 @@ namespace execution
 
   std::generator<Embedding>
   Executor::enumerateOuterDFS(
-      const ib::collapsed::EdgeGraphCollapsed
-          &edgeGraph,
+      const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
       QueryExecutionMetrics &metrics,
+
+      // VarId -> DRelId map
       Embedding &embedding,
+
+      // seen data relationships
       std::unordered_set<
           k::DRelId,
           IntStrongHash> &usedRelationships,
+
+      // process EIdxes
       std::unordered_set<
           ib::collapsed::EIdx,
           IntStrongHash> &processed)
   {
-    size_t depth =
-        processed.size();
-
-    if (
-        metrics.recursiveCallsAtDepth.size() <=
-        depth)
+    // resize depth
+    size_t depth = processed.size();
+    if (metrics.recursiveCallsAtDepth.size() <= depth)
     {
-      metrics.recursiveCallsAtDepth.resize(
-          depth + 1,
-          0);
+      metrics.recursiveCallsAtDepth.resize(depth + 1, 0);
     }
-
     ++metrics.recursiveCallsAtDepth[depth];
 
-    if (
-        processed.size() ==
-        edgeGraph.num_nodes())
+    if (depth == edgeGraph.num_nodes())
     {
       ++metrics.completeMatches;
-
-      co_yield Embedding{
-          embedding};
-
+      co_yield Embedding{embedding};
       co_return;
     }
 
-    auto nextOpt =
-        chooseNextOuterNode(
-            edgeGraph,
-            embedding,
-            processed);
-
-    if (!nextOpt)
+    auto qidx_ = chooseNextOuterNode(edgeGraph, embedding, processed);
+    if (!qidx_)
     {
       co_return;
     }
+    ib::collapsed::EIdx qidx = *qidx_;
 
-    ib::collapsed::EIdx qidx =
-        *nextOpt;
-
-    if (
-        metrics.matchingOrder.size() ==
-        depth)
+    // only store matching order for first dfs
+    if (metrics.matchingOrder.size() == depth)
     {
-      metrics.matchingOrder.push_back(
-          qidx);
+      metrics.matchingOrder.push_back(qidx);
     }
+    auto node = edgeGraph.node_at(qidx);
 
-    auto node =
-        edgeGraph.node_at(qidx);
-
-    // =======================================================================
     // Ordinary relationship
-    // =======================================================================
-
-    if (auto *qrel =
-            std::get_if<
-                ib::PatternRelationshipIR>(
-                &node))
+    if (auto *qrel = std::get_if<ib::PatternRelationshipIR>(&node))
     {
-      std::vector<BoundConstraint>
-          constraints =
-              regularBoundConstraints(
-                  edgeGraph,
-                  qidx,
-                  embedding,
-                  processed);
-
-      k::RelationshipCursor cursor =
-          regularCandidateCursor(
-              constraints);
-
+      // bound constraints for nodes next to `qidx`, next chosen index
+      std::vector<BoundConstraint> constraints = regularBoundConstraints(
+          edgeGraph,
+          qidx,
+          embedding,
+          processed);
+      k::RelationshipCursor cursor = regularCandidateCursor(constraints);
       k::DRelId drel{0};
-
       while (cursor.next(drel))
       {
-        ++metrics
-              .regularCandidatesVisited;
-
-        if (usedRelationships.contains(
-                drel))
+        ++metrics.regularCandidatesVisited;
+        if (usedRelationships.contains(drel))
         {
-          ++metrics
-                .regularRejectedByUniqueness;
-
+          ++metrics.regularRejectedByUniqueness;
           continue;
         }
-
-        if (!satisfiesConstraints(
-                drel,
-                constraints))
+        if (!satisfiesConstraints(drel, constraints))
         {
-          ++metrics
-                .regularRejectedByAdjacency;
-
+          ++metrics.regularRejectedByAdjacency;
           continue;
         }
-
-        if (!predicateEvaluator_.evaluate(
-                qrel->signatureId,
-                drel))
+        if (!predicateEvaluator_.evaluate(qrel->signatureId, drel))
         {
-          ++metrics
-                .regularRejectedByPredicate;
-
+          ++metrics.regularRejectedByPredicate;
           continue;
         }
-
-        embedding.relationships.emplace(
-            qrel->lv,
-            drel);
-
-        usedRelationships.insert(
-            drel);
-
-        processed.insert(
-            qidx);
-
-        for (auto &&result :
-             enumerateOuterDFS(
+        embedding.relationships.emplace(qrel->lv, drel);
+        usedRelationships.insert(drel);
+        processed.insert(qidx);
+        for (auto &&result : enumerateOuterDFS(
                  edgeGraph,
                  metrics,
                  embedding,
                  usedRelationships,
                  processed))
         {
-          co_yield Embedding{
-              result};
+          co_yield Embedding{result};
         }
-
-        processed.erase(
-            qidx);
-
-        usedRelationships.erase(
-            drel);
-
-        embedding.relationships.erase(
-            qrel->lv);
+        processed.erase(qidx);
+        usedRelationships.erase(drel);
+        embedding.relationships.erase(qrel->lv);
       }
-
       co_return;
     }
 
-    // =======================================================================
+
     // Shared block reference
-    // =======================================================================
-
-    const auto &reference =
-        std::get<
-            ib::collapsed::SharedBlockReference>(
-            node);
-
-    const ib::SharedBlockIR &block =
-        buildResult_
-            .shared_block_registry
-            .at(reference.block_id);
-
-    std::optional<k::DRelId>
-        boundaryDRel;
-
+    // get SB reference object
+    const auto &reference = std::get<ib::collapsed::SharedBlockReference>(node);
+    const ib::SharedBlockIR &block = buildResult_
+                                         .shared_block_registry
+                                         .at(reference.block_id);
+    std::optional<k::DRelId> boundaryDRel;
     if (block.boundary_node)
     {
-      auto it =
-          embedding.relationships.find(
-              reference.boundary_node);
-
-      if (it ==
-          embedding.relationships.end())
+      if (!embedding.relationships.contains(reference.boundary_node))
       {
         throw std::logic_error(
             "Shared block selected before outer boundary "
             "relationship was matched");
       }
-
-      boundaryDRel =
-          it->second;
+      boundaryDRel = embedding.relationships.at(reference.boundary_node);
     }
+    SharedBlockIterator iterator = sharedBlockManager_.newIterator(reference.block_id, boundaryDRel);
 
-    SharedBlockIterator iterator =
-        sharedBlockManager_.newIterator(
-            reference.block_id,
-            boundaryDRel);
-
-    while (auto blockRow =
-               iterator.next())
+    while (auto blockRow = iterator.next())
     {
       ++metrics.sharedBlockRowsVisited;
-
       bool valid = true;
-
-      std::vector<qg::VariableId>
-          newlyBound;
-
-      for (const auto &[innerIdx, drel] :
-           blockRow->relationships)
+      std::vector<qg::VariableId> newlyBound;
+      for (const auto &[innerIdx, drel] : blockRow->relationships)
       {
-        auto mappingIt =
-            reference.back_mapping.find(
-                innerIdx);
-
-        // Allows the duplicated inner boundary to be absent
-        // from back_mapping.
-        if (mappingIt ==
-            reference.back_mapping.end())
-        {
+        if (!reference.back_mapping.contains(innerIdx)) {
+          // duplicated inner boundary (which is absent from back mapping)
           continue;
         }
-
-        qg::VariableId qvar =
-            mappingIt->second;
-
-        auto existing =
-            embedding.relationships.find(
-                qvar);
+        qg::VariableId qvar = reference.back_mapping.at(innerIdx);
+        auto existing = embedding.relationships.find(qvar);
 
         // Usually this is the duplicated boundary.
-        if (existing !=
-            embedding.relationships.end())
+        if (existing != embedding.relationships.end())
         {
           if (existing->second != drel)
           {
             valid = false;
             break;
           }
-
           continue;
         }
 
-        if (usedRelationships.contains(
-                drel))
+        if (usedRelationships.contains(drel))
         {
           valid = false;
           break;
         }
-
-        embedding.relationships.emplace(
-            qvar,
-            drel);
-
-        usedRelationships.insert(
-            drel);
-
-        newlyBound.push_back(
-            qvar);
+        embedding.relationships.emplace(qvar, drel);
+        usedRelationships.insert(drel);
+        newlyBound.push_back(qvar);
       }
 
       if (!valid)
       {
-        ++metrics
-              .sharedBlockRowsRejectedByOuterUniqueness;
+        ++metrics.sharedBlockRowsRejectedByOuterUniqueness;
 
-        for (qg::VariableId qvar :
-             newlyBound)
+        for (qg::VariableId qvar : newlyBound)
         {
-          k::DRelId drel =
-              embedding.relationships
-                  .at(qvar);
-
-          usedRelationships.erase(
-              drel);
-
-          embedding.relationships.erase(
-              qvar);
+          k::DRelId drel = embedding.relationships.at(qvar);
+          usedRelationships.erase(drel);
+          embedding.relationships.erase(qvar);
         }
-
         continue;
       }
 
-      processed.insert(
-          qidx);
+      processed.insert(qidx);
 
       for (auto &&result :
            enumerateOuterDFS(
@@ -1371,25 +992,15 @@ namespace execution
                usedRelationships,
                processed))
       {
-        co_yield Embedding{
-            result};
+        co_yield Embedding{result};
       }
 
-      processed.erase(
-          qidx);
-
-      for (qg::VariableId qvar :
-           newlyBound)
+      processed.erase(qidx);
+      for (qg::VariableId qvar : newlyBound)
       {
-        k::DRelId drel =
-            embedding.relationships
-                .at(qvar);
-
-        usedRelationships.erase(
-            drel);
-
-        embedding.relationships.erase(
-            qvar);
+        k::DRelId drel = embedding.relationships.at(qvar);
+        usedRelationships.erase(drel);
+        embedding.relationships.erase(qvar);
       }
     }
   }
@@ -1397,43 +1008,25 @@ namespace execution
   // ===========================================================================
   // Public Executor API
   // ===========================================================================
-
-  std::generator<Embedding>
-  Executor::enumerateQuery(
-      size_t queryIndex)
+  std::generator<Embedding> Executor::enumerateQuery(size_t queryIndex)
   {
-    if (
-        queryIndex >=
-        buildResult_.edgeGraphs.size())
+    if (queryIndex >= buildResult_.edgeGraphs.size())
     {
-      throw std::out_of_range(
-          "invalid query index");
+      throw std::out_of_range("invalid query index");
     }
 
-    QueryExecutionMetrics &metrics =
-        queryMetrics_.at(queryIndex);
+    QueryExecutionMetrics &metrics = queryMetrics_.at(queryIndex);
 
     // Reset per-query enumeration statistics.
-    metrics =
-        QueryExecutionMetrics{};
+    metrics = QueryExecutionMetrics{};
 
-    const auto &edgeGraph =
-        buildResult_
-            .edgeGraphs
-            .at(queryIndex);
+    const auto &edgeGraph = buildResult_.edgeGraphs.at(queryIndex);
 
     Embedding embedding;
 
-    std::unordered_set<
-        k::DRelId,
-        IntStrongHash>
-        usedRelationships;
+    std::unordered_set<k::DRelId, IntStrongHash> usedRelationships;
 
-    std::unordered_set<
-        ib::collapsed::EIdx,
-        IntStrongHash>
-        processed;
-
+    std::unordered_set<ib::collapsed::EIdx, IntStrongHash> processed;
     for (auto &&result :
          enumerateOuterDFS(
              edgeGraph,
@@ -1448,22 +1041,14 @@ namespace execution
   }
 
   QueryExecutionResult
-  Executor::executeQuery(
-      size_t queryIndex)
+  Executor::executeQuery(size_t queryIndex)
   {
     QueryExecutionResult result;
-
-    for (auto &&embedding :
-         enumerateQuery(queryIndex))
+    for (auto &&embedding : enumerateQuery(queryIndex))
     {
-      result.matches.push_back(
-          embedding);
+      result.matches.push_back(embedding);
     }
-
-    result.metrics =
-        queryMetrics_.at(
-            queryIndex);
-
+    result.metrics = queryMetrics_.at(queryIndex);
     return result;
   }
 
