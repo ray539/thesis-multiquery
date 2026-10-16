@@ -38,9 +38,9 @@ target_link_libraries(ir_builder
 
 # --------------------- execution --------------------------
 add_library(execution
-  execution/Helpers.cpp
+  execution/with_shared_blocks/Eval.cpp
+  execution/with_shared_blocks/SharedBlock.cpp
   execution/PredicateEvaluator.cpp
-  execution/ProcessSingleStrategy.cpp
 )
 
 target_include_directories(execution

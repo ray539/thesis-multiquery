@@ -122,7 +122,8 @@ namespace ir_builder
     {
     }
 
-    void add_edge(const EGraphEdge& edge) {
+    void add_edge(const EGraphEdge &edge)
+    {
       adj_[edge.a.val].push_back({edge.adjType, edge.b});
     }
 
@@ -136,7 +137,6 @@ namespace ir_builder
       return nodes_;
     }
 
-
     NodeType node_at(EIdx eidx) const
     {
       return nodes_[eidx.val];
@@ -145,6 +145,35 @@ namespace ir_builder
     std::vector<EGraphAdjacency> adj(EIdx eidx) const
     {
       return adj_[eidx.val];
+    }
+
+    /**
+     * return
+     * - `processed_neighbor_count: ..`, frontier node -> how many neighbors
+     *   that node has
+     */
+    std::unordered_map<
+        EIdx,
+        size_t,
+        IntStrongHash>
+    frontier(const std::unordered_set<EIdx, IntStrongHash> &nodes) const
+    {
+      std::unordered_map<
+          EIdx,
+          size_t,
+          IntStrongHash>
+
+          processedNeighborCount;
+      for (EIdx done : nodes)
+      {
+        for (const auto &edge : edgeGraph.adj(done))
+        {
+          if (processed.contains(edge.other))
+            continue;
+          ++processedNeighborCount[edge.other];
+        }
+      }
+      return processedNeighborCount;
     }
   };
 
@@ -156,21 +185,25 @@ namespace ir_builder
    */
   struct SharedBlockIR
   {
-    struct EIdx_tag {};
+    struct EIdx_tag
+    {
+    };
     using EIdx = IntStrong<EIdx_tag, size_t>;
     using EdgeGraphSB = EdgeGraph<PredicateId, EIdx>;
 
     query_graph::BlockId block_id;
     EdgeGraphSB edge_graph;
-    // local backtracking for the block 
+    // local backtracking for the block
     // MUST start here. If none, it means we are free to choose where to start backtracking
-    std::optional<EIdx> boundary_node; 
+    std::optional<EIdx> boundary_node;
   };
 
   namespace collapsed
   {
     // collapsed query graph
-    struct EIdx_tag {};
+    struct EIdx_tag
+    {
+    };
     using EIdx = IntStrong<EIdx_tag, size_t>;
     /**
      * localized shared block for a specific EdgeGraph
@@ -248,7 +281,6 @@ namespace ir_builder
     IRBuilder() {}
     BuildResult run(const std::vector<query_graph::QueryGraph> &queryGraphs, int maxLayer = 3);
   };
-
 
   namespace expression_recognition
   {

@@ -82,7 +82,6 @@ namespace execution
         k::DRelId drel);
   };
 
-
   // VariableId -> DRelId output for a query
   struct Embedding
   {
@@ -184,6 +183,77 @@ namespace execution
     QueryExecutionMetrics metrics;
   };
 
+  // -------------------
+  // DFSHelper
+  // -------------------
+  namespace dfs_helper
+  {
+
+    /**
+     * describes datagraph neighbor requirements of `me:DRelID`
+     * fields:
+     * - `adjacency: common::Adjacency`: StartStart ... EndEnd
+     * - `otherDRel: DRelId`: required neighbor
+     *
+     * datagraph neighbor requirements can be checked by inspecting endpoint nodes
+     */
+    struct BoundConstraint
+    {
+      common::Adjacency adjacency;
+      k::DRelId otherDRel;
+    };
+
+    /**
+     * inspect edge graph for nodes adjacent to `current`
+     * return
+     * - list of `(adjacency, other:DRel)` pairs describing requirements of a candidate data relationship `me:DRel`
+     * - the list dictates that `me` has to be datagraph adjacent to all the relationships in
+     *   `other` in the with the given adjacency type
+     */
+    std::vector<BoundConstraint> regularBoundConstraints(
+        const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
+        ib::collapsed::EIdx current,
+        const Embedding &embedding,
+        const std::unordered_set<
+            ib::collapsed::EIdx,
+            IntStrongHash> &processed);
+
+    /**
+     * inspect edge graph for nodes adjacent to `current`
+     * same as `regularBoundConstraints`, but functionality specialized for shared block assignments
+     */
+    std::vector<BoundConstraint> SBBoundConstraints(
+        const ib::SharedBlockIR::EdgeGraphSB &edgeGraph,
+        ib::SharedBlockIR::EIdx current,
+
+        const std::unordered_map<
+            ib::SharedBlockIR::EIdx,
+            k::DRelId,
+            IntStrongHash> &assignment);
+
+    /**
+     * returns cursor which yields a superset of relationships which will
+     * satisfy constraints.
+     */
+    k::RelationshipCursor regularCandidateCursor(
+        const std::vector<BoundConstraint> &constraints,
+        k::CachedDatabaseAccess &cached_database);
+
+    /**
+     * whether a candidate DRel satisfies the constraints
+     */
+    bool satisfiesConstraints(
+        k::DRelId candidate,
+        const std::vector<BoundConstraint> &constraints,
+        k::CachedDatabaseAccess &cached_database);
+
+    std::optional<size_t> indexWhichArgmaxes(
+        std::vector<size_t> indices,
+        std::function<bool(size_t)> &&filter,
+        std::function<int64_t(size_t)> &&scorer);
+
+  } // namespace dfs_helper
+
   // ---------------------------------------------------------------------------
   // SharedBlockIterator
   // ---------------------------------------------------------------------------
@@ -230,42 +300,27 @@ namespace execution
     {
     }
 
+    /**
+     * Main accessor. Create (lazy) iterator into shared blocks.
+     */
     SharedBlockIterator newIterator(qg::BlockId block_id, std::optional<k::DRelId> boundary);
 
   private:
     friend class SharedBlockIterator;
-
-    using LocalAssignment =
-        std::unordered_map<
-            ib::SharedBlockIR::EIdx,
-            k::DRelId,
-            IntStrongHash>;
-
     using Producer = std::generator<SharedBlockRow>;
 
+    /**
+     * (BlockId, DRel) -> entry containing shared state between iterators
+     * fields:
+     * - `std::vector<SharedBlockRow> rows`
+     * - `std::optional<Producer> producer`
+     */
     struct Entry
     {
       std::vector<SharedBlockRow> rows;
       std::optional<Producer> producer;
-
-      bool started = false;
+      std::optional<std::ranges::iterator_t<Producer>> iterator;
       bool exhausted = false;
-    };
-
-    
-    /**
-     * describes datagraph neighbor requirements of `me:DRelID`
-     * fields:
-     * - `adjacency: common::Adjacency`: StartStart ... EndEnd
-     * - `otherDRel: DRelId`: required neighbor
-     * 
-     * datagraph neighbor requirements can be checked by inspecting endpoint nodes
-     */
-    struct BoundConstraint
-    {
-      common::Adjacency adjacency;
-      // DRel assigned to the other query relationship.
-      k::DRelId otherDRel;
     };
 
     const std::unordered_map<qg::BlockId, ib::SharedBlockIR, IntStrongHash> &blocks_;
@@ -273,30 +328,48 @@ namespace execution
     k::CachedDatabaseAccess &db_;
     SharedBlockExecutionMetrics &metrics_;
 
+    // TODO: why unique_ptr??
     std::unordered_map<SharedBlockCacheKey, std::unique_ptr<Entry>, SharedBlockCacheKeyHash> entries_;
 
     std::optional<SharedBlockRow> rowAt(const SharedBlockCacheKey &key, size_t index);
 
     Entry &getOrCreateEntry(const SharedBlockCacheKey &key);
 
+    /**
+     * produce an `SharedBlockRow` in the entry by invoking the `producer` coroutine
+     * until the next co_yield
+     */
     bool produceOne(Entry &entry);
 
     Producer makeProducer(qg::BlockId block_id, std::optional<k::DRelId> boundary);
 
     Producer enumerateBlockDFS(
         const ib::SharedBlockIR &block,
-        LocalAssignment &assignment,
-        std::unordered_set<k::DRelId, IntStrongHash> &usedRelationships);
 
-    std::optional<ib::SharedBlockIR::EIdx>
-    chooseNextNode(const ib::SharedBlockIR &block, const LocalAssignment &assignment) const;
+        std::unordered_map<
+            ib::SharedBlockIR::EIdx,
+            k::DRelId,
+            IntStrongHash> &assignment,
 
-    std::vector<BoundConstraint>
-    boundConstraints(const ib::SharedBlockIR &block, ib::SharedBlockIR::EIdx current, const LocalAssignment &assignment);
+        std::unordered_set<
+            k::DRelId,
+            IntStrongHash> &usedRelationships);
 
-    k::RelationshipCursor candidateCursor(const std::vector<BoundConstraint> &constraints);
+    /**
+     * choose next node to maximize
+     * - (boundNeighbors, degree)
+     * return `nullopt` if none found (which means the assignment is fully matched)
+     * 
+     * NOTE
+     * - the first node will be chosen to minimize degree only
+     */
+    std::optional<ib::SharedBlockIR::EIdx> chooseNextNode(
+        const ib::SharedBlockIR &block,
 
-    bool satisfiesConstraints(k::DRelId candidate, const std::vector<BoundConstraint> &constraints);
+        const std::unordered_map<
+            ib::SharedBlockIR::EIdx,
+            k::DRelId,
+            IntStrongHash> &assignment) const;
   };
 
   // ---------------------------------------------------------------------------
@@ -337,33 +410,17 @@ namespace execution
      */
     QueryExecutionResult executeQuery(size_t queryIndex);
 
-    const QueryExecutionMetrics& queryMetrics(size_t queryIndex) const
+    const QueryExecutionMetrics &queryMetrics(size_t queryIndex) const
     {
       return queryMetrics_.at(queryIndex);
     }
 
-    const SharedBlockExecutionMetrics& sharedBlockMetrics() const
+    const SharedBlockExecutionMetrics &sharedBlockMetrics() const
     {
       return sharedBlockMetrics_;
     }
 
   private:
-
-
-    /**
-     * describes datagraph neighbor requirements of `me:DRelID`
-     * fields:
-     * - `adjacency: common::Adjacency`: StartStart ... EndEnd
-     * - `otherDRel: DRelId`: required neighbor
-     * 
-     * datagraph neighbor requirements can be checked by inspecting endpoint nodes
-     */
-    struct BoundConstraint
-    {
-      common::Adjacency adjacency;
-      k::DRelId otherDRel;
-    };
-
     ib::BuildResult &buildResult_;
 
     k::InMemoryDatabase &database_;
@@ -393,7 +450,7 @@ namespace execution
      * Choose next collapsed edge graph node to match.
      * - if none have been already matched, chooses node with `max(deg(u))`
      * - else, chooses node with `max((deg(u), num bound neighbors(u))`
-     * 
+     *
      * return
      * - `optional<EIdx`: next edge graph node to match
      */
@@ -410,49 +467,6 @@ namespace execution
     bool sharedBlockEligible(
         const ib::collapsed::SharedBlockReference &reference,
         const Embedding &embedding) const;
-
-    /**
-     * inspect edge graph for nodes adjacent to `current`
-     * return
-     * - list of `(adjacency, other:DRel)` pairs describing requirements of a candidate data relationship `me:DRel`
-     * - the list dictates that `me` has to be datagraph adjacent to all the relationships in 
-     *   `other` in the with the given adjacency type
-     */
-    std::vector<BoundConstraint>
-    regularBoundConstraints(
-        const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
-        ib::collapsed::EIdx current,
-        const Embedding &embedding,
-        const std::unordered_set<
-            ib::collapsed::EIdx,
-            IntStrongHash> &processed);
-
-    /**
-     * return
-     * - a relationship cursor for `DRelId` which satisfy all the `BoundConstraint`s
-     * - NOTE: in implementation, just uses first adjacent node, since there is no super good way to know which
-     *   node to get the adj cursor from
-     */
-    k::RelationshipCursor regularCandidateCursor(const std::vector<BoundConstraint> &constraints);
-
-    bool satisfiesConstraints(
-        k::DRelId candidate,
-        const std::vector<BoundConstraint> &constraints);
-
-    /**
-     * not Adjacency::BoundaryToSB
-     */
-    static bool isOrdinaryAdjacency(common::Adjacency adjacency)
-    {
-      return adjacency != common::Adjacency::BoundaryToSB;
-    }
-
-    static common::Direction  directionForEndpoint(common::Endpoint endpoint)
-    {
-      return endpoint == common::Endpoint::Start
-                 ? common::Direction::Outgoing
-                 : common::Direction::Incoming;
-    }
   };
 
 } // namespace execution
