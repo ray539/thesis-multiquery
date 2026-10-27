@@ -69,17 +69,17 @@ namespace execution
     }
 
     std::vector<BoundConstraint> regularBoundConstraints(
-        const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
-        ib::collapsed::EIdx current,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed current,
         const Embedding &embedding,
         const std::unordered_set<
-            ib::collapsed::EIdx,
+            ib::EIdxCollapsed,
             IntStrongHash> &processed)
     {
       std::vector<BoundConstraint> result;
 
       // (collapsed_idx, adjtype) set just in case there are duplicate edge graph edges
-      std::set<std::pair<ib::collapsed::EIdx, int>> seen;
+      std::set<std::pair<ib::EIdxCollapsed, int>> seen;
       for (const auto &edge : edgeGraph.adj(current))
       {
         if (!isOrdinaryAdjacency(edge.adjType))
@@ -108,6 +108,10 @@ namespace execution
       return result;
     }
 
+    /**
+     * Look through constraints to get an already bound node
+     * - uses that to get the cursor
+     */
     k::RelationshipCursor regularCandidateCursor(
         const std::vector<BoundConstraint> &constraints,
         k::CachedDatabaseAccess &cached_database)

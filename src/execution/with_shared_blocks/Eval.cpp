@@ -9,7 +9,7 @@ namespace execution
   // ===========================================================================
 
   bool Executor::sharedBlockEligible(
-      const ib::collapsed::SharedBlockReference &reference,
+      const ib::SharedBlockReference &reference,
       const Embedding &embedding) const
   {
     const ib::SharedBlockIR &block = buildResult_
@@ -26,20 +26,20 @@ namespace execution
 
 
 
-  std::optional<ib::collapsed::EIdx> Executor::chooseNextOuterNode(
-      const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
+  std::optional<ib::EIdxCollapsed> Executor::chooseNextOuterNode(
+      const ib::EdgeGraphCollapsed &edgeGraph,
       const Embedding &embedding,
-      const std::unordered_set<ib::collapsed::EIdx, IntStrongHash> &processed) const
+      const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const
   {
     /**
      * either
      * - not a SB reference
      * - if SB reference: whether boundary node has already been matched
      */
-    auto eligible = [&](ib::collapsed::EIdx idx)
+    auto eligible = [&](ib::EIdxCollapsed idx)
     {
       auto node = edgeGraph.node_at(idx);
-      if (auto *block = std::get_if<ib::collapsed::SharedBlockReference>(&node))
+      if (auto *block = std::get_if<ib::SharedBlockReference>(&node))
       {
         return sharedBlockEligible(*block, embedding);
       }
@@ -56,20 +56,20 @@ namespace execution
           all_indices,
           [&](size_t i)
           {
-            return std::holds_alternative<ib::PatternRelationshipIR>(edgeGraph.node_at(ib::collapsed::EIdx(i)));
+            return std::holds_alternative<ib::PatternRelationshipIR>(edgeGraph.node_at(ib::EIdxCollapsed(i)));
           },
           [&](size_t i)
           {
-            return edgeGraph.adj(ib::collapsed::EIdx(i)).size();
+            return edgeGraph.adj(ib::EIdxCollapsed(i)).size();
           });
       if (bestRegular.has_value())
       {
-        return ib::collapsed::EIdx(*bestRegular);
+        return ib::EIdxCollapsed(*bestRegular);
       }
       // The whole graph is a shared block reference.
-      if (edgeGraph.num_nodes() != 1 || !eligible(ib::collapsed::EIdx(0)))
+      if (edgeGraph.num_nodes() != 1 || !eligible(ib::EIdxCollapsed(0)))
         throw std::logic_error("Collapsed graph has no valid starting node");
-      return ib::collapsed::EIdx(0);
+      return ib::EIdxCollapsed(0);
     }
     // choose next eligible node (if SB, boundary bound) which maximzies
     // - (boundNeighbors, degree)
@@ -80,20 +80,20 @@ namespace execution
         indices,
         [&](size_t i)
         {
-          ib::collapsed::EIdx idx(i);
+          ib::EIdxCollapsed idx(i);
           size_t boundNeighbors = processedNeighborCount.at(idx);
-          return eligible(ib::collapsed::EIdx(i)) && boundNeighbors >= 1;
+          return eligible(ib::EIdxCollapsed(i)) && boundNeighbors >= 1;
         },
         [&](size_t i)
         {
-          ib::collapsed::EIdx idx(i);
+          ib::EIdxCollapsed idx(i);
           size_t boundNeighbors = processedNeighborCount.at(idx);
           size_t degree = edgeGraph.adj(idx).size();
           return boundNeighbors * 10000 + degree;
         });
     if (best.has_value())
     {
-      return ib::collapsed::EIdx(*best);
+      return ib::EIdxCollapsed(*best);
     }
     // some nodes have already been processed, but frontier is empty
     // - means that graph was disconnected. (Shouldn't happen)
@@ -106,7 +106,7 @@ namespace execution
 
   std::generator<Embedding>
   Executor::enumerateOuterDFS(
-      const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
+      const ib::EdgeGraphCollapsed &edgeGraph,
       QueryExecutionMetrics &metrics,
 
       // VarId -> DRelId map
@@ -119,7 +119,7 @@ namespace execution
 
       // processed EIdxes
       std::unordered_set<
-          ib::collapsed::EIdx,
+          ib::EIdxCollapsed,
           IntStrongHash> &processed)
   {
     // resize depth
@@ -142,7 +142,7 @@ namespace execution
       co_return;
     }
 
-    ib::collapsed::EIdx qidx = *qidx_;
+    ib::EIdxCollapsed qidx = *qidx_;
     // only store matching order for first dfs
     if (metrics.matchingOrder.size() == depth)
     {
@@ -200,7 +200,7 @@ namespace execution
 
     // Shared block reference
     // get SB reference object
-    const auto &reference = std::get<ib::collapsed::SharedBlockReference>(node);
+    const auto &reference = std::get<ib::SharedBlockReference>(node);
     const ib::SharedBlockIR &block = buildResult_
                                          .shared_block_registry
                                          .at(reference.block_id);
@@ -308,7 +308,7 @@ namespace execution
     const auto &edgeGraph = buildResult_.edgeGraphs.at(queryIndex);
     Embedding embedding;
     std::unordered_set<k::DRelId, IntStrongHash> usedRelationships;
-    std::unordered_set<ib::collapsed::EIdx, IntStrongHash> processed;
+    std::unordered_set<ib::EIdxCollapsed, IntStrongHash> processed;
     for (auto &&result :
          enumerateOuterDFS(
              edgeGraph,

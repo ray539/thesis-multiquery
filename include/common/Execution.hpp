@@ -174,7 +174,7 @@ namespace execution
      * edge graph order chosen on FIRST search branch.
      * Later branches are NOT reflected here
      */
-    std::vector<ib::collapsed::EIdx> matchingOrder;
+    std::vector<ib::EIdxCollapsed> matchingOrder;
   };
 
   struct QueryExecutionResult
@@ -211,11 +211,11 @@ namespace execution
      *   `other` in the with the given adjacency type
      */
     std::vector<BoundConstraint> regularBoundConstraints(
-        const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
-        ib::collapsed::EIdx current,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed current,
         const Embedding &embedding,
         const std::unordered_set<
-            ib::collapsed::EIdx,
+            ib::EIdxCollapsed,
             IntStrongHash> &processed);
 
     /**
@@ -436,14 +436,14 @@ namespace execution
     std::vector<QueryExecutionMetrics> queryMetrics_;
 
     std::generator<Embedding> enumerateOuterDFS(
-        const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
+        const ib::EdgeGraphCollapsed &edgeGraph,
         QueryExecutionMetrics &metrics,
         Embedding &embedding,
         std::unordered_set<
             k::DRelId,
             IntStrongHash> &usedRelationships,
         std::unordered_set<
-            ib::collapsed::EIdx,
+            ib::EIdxCollapsed,
             IntStrongHash> &processed);
 
     /**
@@ -454,18 +454,18 @@ namespace execution
      * return
      * - `optional<EIdx`: next edge graph node to match
      */
-    std::optional<ib::collapsed::EIdx> chooseNextOuterNode(
-        const ib::collapsed::EdgeGraphCollapsed &edgeGraph,
+    std::optional<ib::EIdxCollapsed> chooseNextOuterNode(
+        const ib::EdgeGraphCollapsed &edgeGraph,
         const Embedding &embedding,
         const std::unordered_set<
-            ib::collapsed::EIdx,
+            ib::EIdxCollapsed,
             IntStrongHash> &processed) const;
 
     /**
      * whether `embedding` contains the boundary node required by the shared block
      */
     bool sharedBlockEligible(
-        const ib::collapsed::SharedBlockReference &reference,
+        const ib::SharedBlockReference &reference,
         const Embedding &embedding) const;
   };
 

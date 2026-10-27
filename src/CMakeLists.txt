@@ -54,22 +54,23 @@ target_link_libraries(ir_builder
 
 # --------------------- execution --------------------------
 add_library(execution
+  execution/with_shared_blocks/DFSHelper.cpp
   execution/with_shared_blocks/Eval.cpp
   execution/with_shared_blocks/SharedBlock.cpp
   execution/PredicateEvaluator.cpp
 )
 
-# target_include_directories(execution
-#   PUBLIC
-#     ${PROJECT_SOURCE_DIR}/include
-# )
+target_include_directories(execution
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
 
-# target_link_libraries(execution
-#   PUBLIC
-#     query_graph
-#     ir_builder
-#     kernel
-# )
+target_link_libraries(execution
+  PUBLIC
+    query_graph
+    ir_builder
+    kernel
+)
 
 
 # # --------------------- parser -----------------------------
