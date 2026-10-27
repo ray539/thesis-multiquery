@@ -1,3 +1,12 @@
+# ---------------------- common ----------------
+add_library(common
+  common/Common.cpp
+)
+target_include_directories(common
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
+
 # ---------------------- kernel -------------------------------
 add_library(kernel
   kernel/InMemoryDatabase.cpp
@@ -9,7 +18,7 @@ target_include_directories(kernel
 
 # ---------------------- query_graph ----------------------
 add_library(query_graph
-  query_graph/QueryGraph.cpp
+  query_graph/Printer.cpp
 )
 target_include_directories(query_graph
   PUBLIC
@@ -19,12 +28,19 @@ target_include_directories(query_graph
 
 # --------------------- ir_builder ---------------------
 add_library(ir_builder
+  ir_builder/steps/shared_blocks/AnalyseBlocks.cpp
+  ir_builder/steps/shared_blocks/BuildCollapsedEdgeGraph.cpp
+  ir_builder/steps/shared_blocks/BuildRawEdgeGraph.cpp
+  ir_builder/steps/shared_blocks/MakeSharedBlock.cpp
+  ir_builder/steps/shared_blocks/SharedBlockEdgeGraphBuilder.cpp
   ir_builder/steps/GlobalEntitiesBuilder.cpp
   ir_builder/steps/RelPredicatesBuilder.cpp
   ir_builder/steps/SignatureBuilder.cpp
   ir_builder/IRBuilder.cpp
   ir_builder/ExpressionRecognition.cpp
   ir_builder/PredicateRegistry.cpp
+  ir_builder/Printer.cpp
+  ir_builder/InternalPrinter.cpp
 )
 
 target_include_directories(ir_builder
@@ -43,31 +59,31 @@ add_library(execution
   execution/PredicateEvaluator.cpp
 )
 
-target_include_directories(execution
-  PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-)
+# target_include_directories(execution
+#   PUBLIC
+#     ${PROJECT_SOURCE_DIR}/include
+# )
 
-target_link_libraries(execution
-  PUBLIC
-    query_graph
-    ir_builder
-    kernel
-)
+# target_link_libraries(execution
+#   PUBLIC
+#     query_graph
+#     ir_builder
+#     kernel
+# )
 
 
-# --------------------- parser -----------------------------
-add_library(parser
-  parser/CypherParser.cpp
-)
-target_include_directories(parser
-  PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-)
-target_link_libraries(parser
-  PUBLIC
-    query_graph
-)
+# # --------------------- parser -----------------------------
+# add_library(parser
+#   parser/CypherParser.cpp
+# )
+# target_include_directories(parser
+#   PUBLIC
+#     ${PROJECT_SOURCE_DIR}/include
+# )
+# target_link_libraries(parser
+#   PUBLIC
+#     query_graph
+# )
 
 
 
@@ -85,18 +101,3 @@ target_link_libraries(main
     execution
 )
 
-# ---------------------- compiler options --------------------
-# make it as strict as possible to catch bugs
-if (MSVC)
-  target_compile_options(main PRIVATE /W4 /permissive-)
-else()
-  target_compile_options(main PRIVATE
-    -Wall -Wextra -Winit-self -Wuninitialized -Wreturn-type
-    -fsanitize=address,undefined
-    -fno-omit-frame-pointer
-    -g
-  )
-  target_link_options(main PRIVATE
-    -fsanitize=address,undefined
-  )
-endif()

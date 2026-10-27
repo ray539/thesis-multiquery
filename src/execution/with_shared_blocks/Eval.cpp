@@ -80,7 +80,9 @@ namespace execution
         indices,
         [&](size_t i)
         {
-          return eligible(ib::collapsed::EIdx(i));
+          ib::collapsed::EIdx idx(i);
+          size_t boundNeighbors = processedNeighborCount.at(idx);
+          return eligible(ib::collapsed::EIdx(i)) && boundNeighbors >= 1;
         },
         [&](size_t i)
         {

@@ -4,6 +4,7 @@
 
 namespace ir_builder
 {
+  namespace qg = query_graph;
 
   struct CanonicalizationError : std::runtime_error
   {
@@ -132,7 +133,7 @@ namespace ir_builder
       return nodes_.size();
     }
 
-    std::vector<NodeType> &all_nodes() const
+    const std::vector<NodeType> &all_nodes() const
     {
       return nodes_;
     }
@@ -158,17 +159,12 @@ namespace ir_builder
         IntStrongHash>
     frontier(const std::unordered_set<EIdx, IntStrongHash> &nodes) const
     {
-      std::unordered_map<
-          EIdx,
-          size_t,
-          IntStrongHash>
-
-          processedNeighborCount;
+      std::unordered_map<EIdx, size_t, IntStrongHash> processedNeighborCount;
       for (EIdx done : nodes)
       {
-        for (const auto &edge : edgeGraph.adj(done))
+        for (const auto &edge : adj(done))
         {
-          if (processed.contains(edge.other))
+          if (nodes.contains(edge.other))
             continue;
           ++processedNeighborCount[edge.other];
         }
@@ -198,30 +194,26 @@ namespace ir_builder
     std::optional<EIdx> boundary_node;
   };
 
-  namespace collapsed
+  struct EIdxCollapsed_tag
   {
-    // collapsed query graph
-    struct EIdx_tag
-    {
-    };
-    using EIdx = IntStrong<EIdx_tag, size_t>;
-    /**
-     * localized shared block for a specific EdgeGraph
-     */
-    struct SharedBlockReference
-    {
-      // use this to look back into the matched row to get the boundary DRel
-      query_graph::VariableId boundary_node;
-      query_graph::BlockId block_id;
-      std::unordered_map<SharedBlockIR::EIdx, query_graph::VariableId, IntStrongHash> back_mapping;
-    };
+  };
+  using EIdxCollapsed = IntStrong<EIdxCollapsed_tag, size_t>;
+  /**
+   * localized shared block for a specific EdgeGraph
+   */
+  struct SharedBlockReference
+  {
+    // use this to look back into the matched row to get the boundary DRel
+    query_graph::VariableId boundary_node;
+    query_graph::BlockId block_id;
+    std::unordered_map<SharedBlockIR::EIdx, query_graph::VariableId, IntStrongHash> back_mapping;
+  };
 
-    /**
-     * final edge graph for execution
-     */
-    typedef EdgeGraph<std::variant<PatternRelationshipIR, SharedBlockReference>, EIdx> EdgeGraphCollapsed;
-    typedef std::variant<PatternRelationshipIR, SharedBlockReference> NodeType;
-  }
+  /**
+   * final edge graph for execution
+   */
+  typedef EdgeGraph<std::variant<PatternRelationshipIR, SharedBlockReference>, EIdxCollapsed> EdgeGraphCollapsed;
+  typedef std::variant<PatternRelationshipIR, SharedBlockReference> NodeType;
 
   class PredicateRegistry
   {
@@ -253,7 +245,7 @@ namespace ir_builder
     /**
      * edges graphs ready for matching
      */
-    std::vector<collapsed::EdgeGraphCollapsed> edgeGraphs;
+    std::vector<EdgeGraphCollapsed> edgeGraphs;
 
     /**
      * in a nutshell,  PredicateId -> RelPredicate
@@ -284,7 +276,7 @@ namespace ir_builder
 
   namespace expression_recognition
   {
-    namespace qg = query_graph;
+    
 
     /**
      * match `VariableReference(v:VariableId)`, returning `v`
@@ -328,5 +320,38 @@ namespace ir_builder
      * match `HasRelType(VariableReference(relId:VariableId), relType:string)`, returning `relId, relType`
      */
     std::optional<ParsedHasRelType> hasRelType(const qg::QueryGraph &qg, qg::ExprId id);
-  }
+  } // namespace expression_recognition
+
+
+  // ---------------------------------------------------------------------------
+  // Debug / pretty printing
+  // ---------------------------------------------------------------------------
+  std::string to_string(const RelPropertyEquals &predicate);
+  std::string to_string(const RelTypeEquals &predicate);
+  std::string to_string(const EndpointPropertyEquals &predicate);
+  std::string to_string(const EndpointHasLabel &predicate);
+  std::string to_string(const EndpointsEqual &predicate);
+
+  std::string to_string(const AtomicRelPredicate &predicate);
+
+  std::string to_string(const AdjacencyRequirement &requirement);
+
+  std::string to_string(const BaseRelPredicate &predicate);
+  std::string to_string(const OtherRelPredicate &predicate);
+  std::string to_string(const RelPredicate &predicate);
+
+  std::string to_string(const PatternRelationshipIR &relationship);
+
+  std::string to_string(SharedBlockIR::EIdx eidx);
+  std::string to_string(const SharedBlockIR::EdgeGraphSB &edgeGraph);
+  std::string to_string(const SharedBlockIR &sharedBlock);
+
+  std::string to_string(EIdxCollapsed eidx);
+  std::string to_string(const SharedBlockReference &reference);
+  std::string to_string(const NodeType &node);
+  std::string to_string(const EdgeGraphCollapsed &edgeGraph);
+
+  std::string to_string(const PredicateRegistry &registry);
+  std::string to_string(const BuildResult &result);
+
 } // namespace ir_builder

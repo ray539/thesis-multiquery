@@ -7,7 +7,7 @@ namespace ir_builder
 {
   namespace egh = edge_graph_helpers;
 
-  collapsed::EdgeGraphCollapsed buildEdgeGraph(
+  EdgeGraphCollapsed buildEdgeGraph(
       const qg::QueryGraph &queryGraph,
       const size_t qi,
       const GlobalEntities &ge,
@@ -35,8 +35,8 @@ namespace ir_builder
   }
 
   std::pair<
-      std::vector<collapsed::EdgeGraphCollapsed>,
-      std::unordered_map<qg::BlockId, SharedBlockIR>>
+      std::vector<EdgeGraphCollapsed>,
+      std::unordered_map<qg::BlockId, SharedBlockIR, IntStrongHash>>
   buildCollapsedEdgeGraphs(
       const std::vector<qg::QueryGraph> &queryGraphs,
       const GlobalEntities &ge,
@@ -46,7 +46,7 @@ namespace ir_builder
     std::unordered_map<qg::BlockId, SharedBlockIR, IntStrongHash> shared_block_of;
     std::unordered_map<qg::BlockId, egh::BlockShape, IntStrongHash> shape_of;
 
-    std::vector<collapsed::EdgeGraphCollapsed> edge_graphs;
+    std::vector<EdgeGraphCollapsed> edge_graphs;
     edge_graphs.reserve(queryGraphs.size());
 
     for (size_t qi = 0; qi < queryGraphs.size(); ++qi)
