@@ -428,4 +428,177 @@ namespace query_graph
   std::string to_string(
       const QueryGraph &queryGraph);
 
+
+
+  // query graph builder
+  struct QueryGraphBuilderError : std::runtime_error
+  {
+    using std::runtime_error::runtime_error;
+  };
+  class QueryGraphBuilder
+  {
+  public:
+    class ExpressionBuilder;
+    QueryGraphBuilder() = default;
+
+    /**
+     * Create a new pattern node.
+     *
+     * Returns its query-local VariableId.
+     */
+    VariableId createNode();
+
+    /**
+     * Create a new pattern relationship between two existing node variables.
+     */
+    VariableId createRelationship(
+        VariableId startNode,
+        VariableId endNode,
+        common::Direction direction = common::Direction::Outgoing);
+
+    /**
+     * Create an expression builder backed by this query graph's ExpressionArena.
+     *
+     * The returned object is lightweight and simply holds a reference to this builder.
+     */
+    ExpressionBuilder expr();
+
+    /**
+     * Attach a boolean predicate to either a PatternNode or PatternRelationship.
+     *
+     * `variable` must be a variable created by this builder.
+     * `predicate` must evaluate to Bool.
+     */
+    void addPredicateTo(VariableId variable, ExprId predicate);
+
+    /**
+     * Add a query-level predicate.
+     *
+     * `predicate` must evaluate to Bool.
+     */
+    void addGlobalPredicate(ExprId predicate);
+
+    /**
+     * Add one occurrence of a shared block.
+     *
+     * blockId is supplied explicitly because the same BlockId may be used by occurrences
+     * in other query graphs.
+     */
+    void addSharedBlock(BlockId blockId, std::vector<VariableId> relationships);
+
+    /**
+     * Return a copy of the constructed QueryGraph.
+     */
+    QueryGraph build() const;
+
+    /**
+     * Read-only access to the graph while constructing tests.
+     */
+    const QueryGraph &graph() const;
+
+    /**
+     * Return the type associated with a variable created by this builder.
+     */
+    ValueType variableType(VariableId variable) const;
+
+  private:
+    friend class ExpressionBuilder;
+
+    QueryGraph graph_;
+
+    int64_t nextVariableId_ = 0;
+
+    // VariableId -> Node / Relationship.
+    std::unordered_map<VariableId, ValueType, IntStrongHash> variableTypes_;
+
+    // VariableId -> index in QueryGraph::patternNodes.
+    std::unordered_map<VariableId, size_t, IntStrongHash> nodeIndex_;
+
+    // VariableId -> index in QueryGraph::patternRelationships.
+    std::unordered_map<VariableId, size_t, IntStrongHash> relationshipIndex_;
+
+    const Expression &expression(ExprId id) const;
+    void requireBooleanExpression(ExprId id, std::string_view operation) const;
+  };
+
+  /**
+   * Thin facade over QueryGraph::ExpressionArena.
+   *
+   * Every method:
+   * - validates its input expression types;
+   * - inserts a correctly typed Expression into the parent's arena;
+   * - returns the new ExprId.
+   */
+  class QueryGraphBuilder::ExpressionBuilder
+  {
+  public:
+    explicit ExpressionBuilder(QueryGraphBuilder &parent);
+
+    ExprId variableReference(VariableId variable);
+
+    ExprId integerLiteral(int64_t value);
+    ExprId boolLiteral(bool value);
+
+    /**
+     * Property accesses currently evaluate to Integer because the current data model
+     * only supports integer-valued properties.
+     */
+    ExprId property(ExprId entity, std::string property);
+    ExprId propertyAccess(ExprId entity, std::string property);
+
+    /**
+     * General arithmetic builder.
+     *
+     * lhs and rhs must both evaluate to Integer.
+     */
+    ExprId arithmetic(ExprId lhs, ArithmeticOp op, ExprId rhs);
+
+    ExprId add(ExprId lhs, ExprId rhs);
+    ExprId subtract(ExprId lhs, ExprId rhs);
+    ExprId multiply(ExprId lhs, ExprId rhs);
+    ExprId divide(ExprId lhs, ExprId rhs);
+
+    /**
+     * Equal / NotEqual require operands of the same type.
+     *
+     * Less / LessEqual / Greater / GreaterEqual additionally require Integer operands.
+     */
+    ExprId comparison(ExprId lhs, ComparisonOp op, ExprId rhs);
+
+    /**
+     * lhs and rhs must both evaluate to Bool.
+     */
+    ExprId booleanBinary(ExprId lhs, BooleanOp op, ExprId rhs);
+
+    /**
+     * operand must evaluate to Bool.
+     */
+    ExprId booleanNot(ExprId operand);
+
+    /**
+     * node must evaluate to Node.
+     */
+    ExprId hasLabel(ExprId node, std::string label);
+
+    /**
+     * relationship must evaluate to Relationship.
+     */
+    ExprId hasRelType(ExprId relationship, std::string relType);
+
+  private:
+    QueryGraphBuilder &parent_;
+
+    ExprId addExpression(ValueType type, ExpressionData data);
+
+    const Expression &expression(ExprId id) const;
+
+    void requireType(ExprId id, ValueType expected, std::string_view operation) const;
+
+    [[noreturn]] void throwTypeError(
+        std::string_view operation,
+        ExprId id,
+        ValueType expected,
+        ValueType actual) const;
+  };
+
 } // namespace query_graph

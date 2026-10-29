@@ -19,6 +19,7 @@ target_include_directories(kernel
 # ---------------------- query_graph ----------------------
 add_library(query_graph
   query_graph/Printer.cpp
+  query_graph/QueryGraphBuilder.cpp
 )
 target_include_directories(query_graph
   PUBLIC

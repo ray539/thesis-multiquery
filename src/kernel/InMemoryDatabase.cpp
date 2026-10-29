@@ -93,7 +93,7 @@ namespace kernel
   const std::string &InMemoryDatabase::accessRelationshipType(
       DRelId rel) const
   {
-    // return relationships_.at(rel).relType;
+    return relationships_.at(rel).relType;
   }
 
   bool InMemoryDatabase::accessNodeHasLabel(

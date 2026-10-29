@@ -232,6 +232,10 @@ namespace query_graph
            "}";
   }
 
+  /**
+   * recursive to_string, which will recurse over the expression in order to
+   * pretty print the whole thing
+   */
   std::string expression_to_string(
       ExprId id,
       const ExpressionArena &arena)
