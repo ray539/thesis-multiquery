@@ -15,7 +15,7 @@ namespace ir_builder
      */
     SharedBlockReference create_shared_reference(
         const EdgeGraphRaw &raw_edge_graph,
-        const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc> &classification_of_node,
+        const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc, IntStrongHash> &classification_of_node,
         const qg::VariableId &collapsed_boundary_node,
         const BlockOccurrence &block_occurrence)
     {
@@ -41,7 +41,13 @@ namespace ir_builder
         assert(
             std::holds_alternative<node_classification::Inner>(classification_of_node.at(node_index_occ)));
 
-        shared_block_reference.back_mapping[SharedBlockIR::EIdx(block_eidx)] = raw_edge_graph.node_at(node_index_occ).lv;
+        // NOTE: our strong types aren't default constructible. Therefore must use emplace
+        // - this throws error on duplicate keys
+
+        shared_block_reference.back_mapping
+            .emplace(
+                SharedBlockIR::EIdx(block_eidx),
+                raw_edge_graph.node_at(node_index_occ).lv);
         block_eidx++;
       }
 
@@ -62,7 +68,7 @@ namespace ir_builder
     getCollapsedNodes(
         const EdgeGraphRaw &raw_edge_graph,
         const std::vector<BlockOccurrence> block_occurrences,
-        const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc> &classification_of_node)
+        const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc, IntStrongHash> &classification_of_node)
     {
       std::vector<NodeType> nodes;
       // Maps raw node index -> collapsed node EIdx for BOUNDARY / OUTER nodes only
@@ -125,7 +131,7 @@ namespace ir_builder
     EdgeGraphCollapsed buildCollapsedGraph(
         const EdgeGraphRaw &raw_edge_graph,
         const std::vector<BlockOccurrence> &block_occurrences,
-        const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc> &classification_of_node)
+        const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc, IntStrongHash> &classification_of_node)
     {
       auto [nodes, collapsed_index_of, dangling_edges] = getCollapsedNodes(raw_edge_graph, block_occurrences, classification_of_node);
       EdgeGraphCollapsed edge_graph_collapsed(nodes);

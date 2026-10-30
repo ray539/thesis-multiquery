@@ -247,6 +247,7 @@ namespace ir_builder
                   .occurrence_ids = occ_ids});
         }
       }
+      return classification_of_node;
     }
 
     std::pair<std::vector<BlockOccurrence>, std::unordered_map<EIdxRaw, node_classification::nc, IntStrongHash>> analyseBlocks(
@@ -260,9 +261,9 @@ namespace ir_builder
       std::unordered_map<qg::VariableId, EIdxRaw, IntStrongHash> varid_to_index = get_varid_to_eidx(queryGraph);
       // mapping of node -> all block occurrences it occurs in
       std::unordered_map<EIdxRaw, std::vector<size_t>, IntStrongHash> occs_of_node;
-      for (auto &node : raw_edge_graph.all_nodes())
+      for (size_t node = 0; node < raw_edge_graph.num_nodes(); node += 1)
       {
-        occs_of_node.emplace(node, std::vector<size_t>{});
+        occs_of_node.emplace(EIdxRaw(node), std::vector<size_t>{});
       }
 
       // turn user marked regions into BlockOccurrence objects

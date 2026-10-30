@@ -23,8 +23,9 @@ namespace ir_builder
             std::to_string(
                 relVariable.val));
       }
-      GlobalRelId globalRelId = qLocalToGlobal.rel_to_globalID[relVariable];
-      ge.relationships[globalRelId].atomicPredicates.push_back(std::move(predicate));
+
+      GlobalRelId globalRelId = qLocalToGlobal.rel_to_globalID.at(relVariable);
+      ge.relationships.at(globalRelId).atomicPredicates.push_back(std::move(predicate));
     }
 
     void attachNodePredicate(
@@ -44,7 +45,7 @@ namespace ir_builder
                 nodeVariable.val));
       }
 
-      auto nodeGlobalId = qLocalToGlobal.node_to_globalID[nodeVariable];
+      auto nodeGlobalId = qLocalToGlobal.node_to_globalID.at(nodeVariable);
       if (!ge.adjListNode.contains(nodeGlobalId))
       {
         throw CanonicalizationError("invalid node");
@@ -63,7 +64,7 @@ namespace ir_builder
       for (const Incidence &incidence : ge.adjListNode[nodeGlobalId])
       {
         ge.relationships
-            [incidence.relId]
+            .at(incidence.relId)
                 .atomicPredicates.push_back(
                     make_predicate(incidence.endpoint));
       }
@@ -86,8 +87,8 @@ namespace ir_builder
       // Relationship property.
       if (qLocalToGlobal.rel_to_globalID.contains(property.varId))
       {
-        GlobalRelId relIndex = qLocalToGlobal.rel_to_globalID[property.varId];
-        ge.relationships[relIndex].atomicPredicates.push_back(
+        GlobalRelId relIndex = qLocalToGlobal.rel_to_globalID.at(property.varId);
+        ge.relationships.at(relIndex).atomicPredicates.push_back(
             RelPropertyEquals{
                 property.property,
                 value});

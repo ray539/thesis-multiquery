@@ -23,7 +23,7 @@ namespace ir_builder
       {
         return "RP|" + encodeString(p->prop) + "|" + std::to_string(p->val);
       }
-      if (auto *p = std::get_if<qg::HasRelType>(&predicate))
+      if (auto *p = std::get_if<RelTypeEquals>(&predicate))
       {
         return "RT|" + encodeString(p->relType);
       }

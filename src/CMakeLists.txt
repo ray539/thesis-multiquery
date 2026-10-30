@@ -9,11 +9,16 @@ target_include_directories(common
 
 # ---------------------- kernel -------------------------------
 add_library(kernel
+  kernel/CachedDatabaseAccess.cpp
   kernel/InMemoryDatabase.cpp
 )
 target_include_directories(kernel
   PUBLIC
     ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(kernel
+  PUBLIC
+    common
 )
 
 # ---------------------- query_graph ----------------------
@@ -24,6 +29,10 @@ add_library(query_graph
 target_include_directories(query_graph
   PUBLIC
     ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(query_graph
+  PUBLIC
+    common
 )
 
 
@@ -50,6 +59,7 @@ target_include_directories(ir_builder
 )
 target_link_libraries(ir_builder
   PUBLIC
+    common
     query_graph
 )
 
@@ -68,6 +78,7 @@ target_include_directories(execution
 
 target_link_libraries(execution
   PUBLIC
+    common
     query_graph
     ir_builder
     kernel
@@ -97,7 +108,6 @@ add_executable(main
 
 target_link_libraries(main
   PRIVATE
-    parser
     query_graph
     kernel
     execution

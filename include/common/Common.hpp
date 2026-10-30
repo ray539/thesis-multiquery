@@ -178,7 +178,7 @@ namespace common
   // ----------------------------------------
   // Printing helpers
   // ----------------------------------------
-  std::string quoted(const std::string &value)
+  inline std::string quoted(const std::string &value)
   {
     return "\"" + value + "\"";
   }
@@ -201,7 +201,7 @@ namespace common
   }
 
   template <typename T>
-  std::string commaSeparated(const std::vector<T> &values, auto printer)
+  inline std::string commaSeparated(const std::vector<T> &values, auto printer)
   {
     std::stringstream out;
 
@@ -216,7 +216,7 @@ namespace common
     return out.str();
   }
 
-  std::string indent(const std::string &text, size_t spaces)
+  inline std::string indent(const std::string &text, size_t spaces)
   {
     const std::string prefix(spaces, ' ');
     std::stringstream input{text};

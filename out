@@ -1,0 +1,11 @@
+[  3%] Building CXX object src/CMakeFiles/common.dir/common/Common.cpp.o
+[  6%] Linking CXX static library libcommon.a
+[  6%] Built target common
+[ 16%] Built target kernel
+[ 25%] Built target query_graph
+[ 70%] Built target ir_builder
+[ 87%] Built target execution
+[ 90%] Linking CXX executable main
+[ 93%] Built target main
+[ 96%] Linking CXX executable ir_builder_test
+[100%] Built target ir_builder_test

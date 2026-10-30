@@ -57,13 +57,13 @@ namespace ir_builder
     std::unordered_map<GlobalNodeId, std::vector<Incidence>, IntStrongHash> adjListNode;
   };
 
-  inline GlobalEntities buildGlobalEntities(const std::vector<query_graph::QueryGraph> &queryGraphs);
+  GlobalEntities buildGlobalEntities(const std::vector<query_graph::QueryGraph> &queryGraphs);
 
   /**
    * collect all predicates in all the query graphs given and place them in `ge.relationships`
    */
-  inline void collectPredicates(
-      const std::vector<query_graph::QueryGraph> queryGraphs,
+  void collectPredicates(
+      const std::vector<query_graph::QueryGraph>& queryGraphs,
       GlobalEntities &ge);
 
   struct SignatureBuilderResult
@@ -74,8 +74,7 @@ namespace ir_builder
     PredicateRegistry pRegistry;
   };
 
-  inline SignatureBuilderResult buildAndInternSignatures(
-      const std::vector<query_graph::QueryGraph> &queryGraphs,
+  SignatureBuilderResult buildAndInternSignatures(
       GlobalEntities &ge,
       int maxLayers);
 

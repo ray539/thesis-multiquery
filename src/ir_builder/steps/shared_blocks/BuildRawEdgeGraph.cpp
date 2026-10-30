@@ -16,7 +16,7 @@ namespace ir_builder
     inline std::vector<PatternRelationshipIR> buildRelationshipIRs(
         const qg::QueryGraph &queryGraph,
         const QueryLocalToGlobal &local_to_global,
-        const std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships)
+        const std::unordered_map<GlobalRelId, PatternRelationshipInternal, IntStrongHash> &global_relationships)
     {
       std::vector<PatternRelationshipIR> result;
       for (const auto &qrel : queryGraph.patternRelationships)
@@ -38,18 +38,18 @@ namespace ir_builder
      * Build the complete ordinary edge graph before any shared blocks are
      * collapsed.
      */
-    std::vector<std::vector<raw::EdgeGraphRaw::EGraphAdjacency>> buildRawAdjacency(const std::vector<PatternRelationshipIR> &qrels)
+    std::vector<std::vector<EdgeGraphRaw::EGraphAdjacency>> buildRawAdjacency(const std::vector<PatternRelationshipIR> &qrels)
     {
-      std::vector<std::vector<raw::EdgeGraphRaw::EGraphAdjacency>> adj(qrels.size());
+      std::vector<std::vector<EdgeGraphRaw::EGraphAdjacency>> adj(qrels.size());
       auto add = [&](size_t a, size_t b, cmn::Adjacency type)
       {
-        adj[a].push_back(raw::EdgeGraphRaw::EGraphAdjacency{
+        adj[a].push_back(EdgeGraphRaw::EGraphAdjacency{
             .adjType = type,
-            .other = b,
+            .other = EIdxRaw(b),
         });
-        adj[b].push_back(raw::EdgeGraphRaw::EGraphAdjacency{
+        adj[b].push_back(EdgeGraphRaw::EGraphAdjacency{
             .adjType = reverseAdjacency(type),
-            .other = a,
+            .other = EIdxRaw(a),
         });
       };
 
@@ -78,14 +78,14 @@ namespace ir_builder
       return adj;
     }
 
-    raw::EdgeGraphRaw buildRawEdgeGraph(
+    EdgeGraphRaw buildRawEdgeGraph(
         const qg::QueryGraph &queryGraph,
         const QueryLocalToGlobal &local_to_global,
-        const std::unordered_map<GlobalRelId, PatternRelationshipInternal> &global_relationships)
+        const std::unordered_map<GlobalRelId, PatternRelationshipInternal, IntStrongHash> &global_relationships)
     {
       std::vector<PatternRelationshipIR> qrels = buildRelationshipIRs(queryGraph, local_to_global, global_relationships);
       auto raw_adj = buildRawAdjacency(qrels);
-      return raw::EdgeGraphRaw(qrels, raw_adj);
+      return EdgeGraphRaw(qrels, raw_adj);
     }
   } // namespace edge_graph_helpers
 }

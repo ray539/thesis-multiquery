@@ -71,7 +71,7 @@ void test_irbuilder_nosharedblocks_qg1() {
   std::cout << ib::to_string(ge) << std::endl;
   ib::collectPredicates(qgs,ge);
   std::cout << ib::to_string(ge) << std::endl;
-  auto [signatures, pRegistry] = buildAndInternSignatures(qgs, ge, 3);
+  auto [signatures, pRegistry] = buildAndInternSignatures(ge, 3);
   std::cout << ib::to_string(pRegistry) << std::endl;
 }
 

@@ -74,8 +74,16 @@ namespace execution
     // choose next eligible node (if SB, boundary bound) which maximzies
     // - (boundNeighbors, degree)
     auto processedNeighborCount = edgeGraph.frontier(processed);
-    auto x = std::views::keys(processedNeighborCount);
-    std::vector<size_t> indices(x.begin(), x.end());
+
+    std::vector<size_t> indices = processedNeighborCount
+      | std::views::keys
+      | std::views::transform(
+        [&](ib::EIdxCollapsed e) -> size_t {
+          return e.val;          
+        })
+      | std::ranges::to<std::vector<size_t>>();
+
+
     auto best = h::indexWhichArgmaxes(
         indices,
         [&](size_t i)

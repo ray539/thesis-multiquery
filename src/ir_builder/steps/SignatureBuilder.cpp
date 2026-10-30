@@ -58,7 +58,6 @@ namespace ir_builder
   }
 
   SignatureBuilderResult buildAndInternSignatures(
-      const std::vector<qg::QueryGraph> &queryGraphs,
       GlobalEntities &ge,
       int maxLayers)
   {
@@ -102,8 +101,8 @@ namespace ir_builder
 
         PredicateId predId = pRegistry.intern(std::move(predicate));
         current.push_back(predId);
-        ge.relationships[relId].signatureId = predId;
-        levelk[relId] = predId;
+        ge.relationships.at(relId).signatureId = predId;
+        levelk.emplace(relId, predId);
 
         levelk1 = levelk;
       }

@@ -5,7 +5,7 @@ namespace qg = query_graph;
 
 namespace ir_builder
 {
-  BuildResult IRBuilder::run(const std::vector<qg::QueryGraph> &queryGraphs, int maxLayer = 3)
+  BuildResult IRBuilder::run(const std::vector<qg::QueryGraph> &queryGraphs, int maxLayer)
   {
     if (maxLayer < 0)
     {
@@ -22,7 +22,7 @@ namespace ir_builder
     // phase 3
     // - build signatures
     // previous[relIdx] = predicate id for this relIdx
-    auto [signatures, pRegistry] = buildAndInternSignatures(queryGraphs, globalEntities, maxLayer);
+    auto [signatures, pRegistry] = buildAndInternSignatures(globalEntities, maxLayer);
     // phase 4
     // - build collapsed edge graphs based on level 0 signatures
     auto [edge_graphs, shared_block_registry] = buildCollapsedEdgeGraphs(queryGraphs, globalEntities, signatures.at(0));

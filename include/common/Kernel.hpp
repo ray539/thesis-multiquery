@@ -274,8 +274,7 @@ namespace kernel
     // (dnodeId, string) -> bool (haslabel?)
     std::unordered_map<
         DNodePropertyKey,
-        bool,
-        IntStrongHash>
+        bool>
         nodeLabelCache_;
   };
 }

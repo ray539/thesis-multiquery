@@ -95,7 +95,6 @@ namespace ir_builder
         const EdgeGraphRaw &edge_graph_raw,
         const std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> &signatures)
     {
-      const size_t block_size = occurrence.outer_node_indices.size();
       std::unordered_map<EIdxRaw, SharedBlockIR::EIdx, IntStrongHash> outer_to_local = get_outer_to_local(occurrence);
       BlockShape shape = buildBlockShape(occurrence, edge_graph_raw, signatures, outer_to_local);
       std::vector<std::vector<SharedBlockIR::EdgeGraphSB::EGraphAdjacency>> adj = adj_from_shape(shape);
