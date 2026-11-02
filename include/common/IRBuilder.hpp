@@ -204,7 +204,7 @@ namespace ir_builder
   struct SharedBlockReference
   {
     // use this to look back into the matched row to get the boundary DRel
-    query_graph::VariableId boundary_node;
+    std::optional<query_graph::VariableId> boundary_node; // whole query graph could be a shared block, in which case no boundary
     query_graph::BlockId block_id;
     std::unordered_map<SharedBlockIR::EIdx, query_graph::VariableId, IntStrongHash> back_mapping;
   };

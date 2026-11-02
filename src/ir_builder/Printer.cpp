@@ -273,7 +273,7 @@ namespace ir_builder
 
     out << "SharedBlockReference {\n";
     out << "  block_id: " << query_graph::to_string(reference.block_id) << ",\n";
-    out << "  boundary_node: " << query_graph::to_string(reference.boundary_node) << ",\n";
+    out << "  boundary_node: " << (reference.boundary_node.has_value() ? query_graph::to_string(reference.boundary_node.value()) : "null") << ",\n";
     out << "  back_mapping: {\n";
 
     std::vector<std::pair<SharedBlockIR::EIdx, query_graph::VariableId>> mappings;

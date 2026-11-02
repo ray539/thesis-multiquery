@@ -50,7 +50,7 @@ namespace ir_builder
       if (boundary_candidates.size() > 1)
       {
         throw std::runtime_error(
-            "shared block must have <= node "
+            "shared block must have <= 1 node "
             "which touches the rest of the query; found " +
             std::to_string(
                 boundary_candidates.size()));

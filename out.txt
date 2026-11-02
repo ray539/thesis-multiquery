@@ -1,0 +1,185 @@
+BuildResult {
+  predicateRegistry:
+    PredicateRegistry {
+      p0:
+        BaseRelPredicate{atomicPredicates=[RelTypeEquals{relType="E"}]}
+      p1:
+        BaseRelPredicate{atomicPredicates=[RelTypeEquals{relType="D"}]}
+      p2:
+        BaseRelPredicate{atomicPredicates=[RelTypeEquals{relType="C"}]}
+      p3:
+        BaseRelPredicate{atomicPredicates=[RelTypeEquals{relType="B"}]}
+      p4:
+        BaseRelPredicate{atomicPredicates=[RelTypeEquals{relType="A"}]}
+      p5:
+        OtherRelPredicate{
+          previousId=p0,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p1, multiplicity=1}
+          ]
+        }
+      p6:
+        OtherRelPredicate{
+          previousId=p1,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p2, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p0, multiplicity=1}
+          ]
+        }
+      p7:
+        OtherRelPredicate{
+          previousId=p2,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p3, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p1, multiplicity=1}
+          ]
+        }
+      p8:
+        OtherRelPredicate{
+          previousId=p3,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p4, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p2, multiplicity=1}
+          ]
+        }
+      p9:
+        OtherRelPredicate{
+          previousId=p4,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=EndStart, predId=p3, multiplicity=1}
+          ]
+        }
+      p10:
+        OtherRelPredicate{
+          previousId=p5,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p6, multiplicity=1}
+          ]
+        }
+      p11:
+        OtherRelPredicate{
+          previousId=p6,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p7, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p5, multiplicity=1}
+          ]
+        }
+      p12:
+        OtherRelPredicate{
+          previousId=p7,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p8, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p6, multiplicity=1}
+          ]
+        }
+      p13:
+        OtherRelPredicate{
+          previousId=p8,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p9, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p7, multiplicity=1}
+          ]
+        }
+      p14:
+        OtherRelPredicate{
+          previousId=p9,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=EndStart, predId=p8, multiplicity=1}
+          ]
+        }
+      p15:
+        OtherRelPredicate{
+          previousId=p10,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p11, multiplicity=1}
+          ]
+        }
+      p16:
+        OtherRelPredicate{
+          previousId=p11,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p12, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p10, multiplicity=1}
+          ]
+        }
+      p17:
+        OtherRelPredicate{
+          previousId=p12,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p13, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p11, multiplicity=1}
+          ]
+        }
+      p18:
+        OtherRelPredicate{
+          previousId=p13,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=StartEnd, predId=p14, multiplicity=1}
+            AdjacencyRequirement{adjacency=EndStart, predId=p12, multiplicity=1}
+          ]
+        }
+      p19:
+        OtherRelPredicate{
+          previousId=p14,
+          adjacencyRequirements=[
+            AdjacencyRequirement{adjacency=EndStart, predId=p13, multiplicity=1}
+          ]
+        }
+    },
+  signatures: [
+    layer 0: {
+      gr0 -> p4
+      gr1 -> p3
+      gr2 -> p2
+      gr3 -> p1
+      gr4 -> p0
+    }
+    layer 1: {
+      gr0 -> p9
+      gr1 -> p8
+      gr2 -> p7
+      gr3 -> p6
+      gr4 -> p5
+    }
+    layer 2: {
+      gr0 -> p14
+      gr1 -> p13
+      gr2 -> p12
+      gr3 -> p11
+      gr4 -> p10
+    }
+    layer 3: {
+      gr0 -> p19
+      gr1 -> p18
+      gr2 -> p17
+      gr3 -> p16
+      gr4 -> p15
+    }
+  ],
+  sharedBlockRegistry: {
+  },
+  edgeGraphs: [
+    query 0:
+      EdgeGraphCollapsed {
+        nodes: [
+          ce0:
+            PatternRelationshipIR{global_rel_id=gr0, lv=v6, start=v0, end=v1, signatureId=p19}
+          ce1:
+            PatternRelationshipIR{global_rel_id=gr1, lv=v7, start=v1, end=v2, signatureId=p18}
+          ce2:
+            PatternRelationshipIR{global_rel_id=gr2, lv=v8, start=v2, end=v3, signatureId=p17}
+          ce3:
+            PatternRelationshipIR{global_rel_id=gr3, lv=v9, start=v3, end=v4, signatureId=p16}
+          ce4:
+            PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v4, end=v5, signatureId=p15}
+        ],
+        adjacency: [
+          ce0 -> [{type=EndStart, other=ce1}]
+          ce1 -> [{type=StartEnd, other=ce0}, {type=EndStart, other=ce2}]
+          ce2 -> [{type=StartEnd, other=ce1}, {type=EndStart, other=ce3}]
+          ce3 -> [{type=StartEnd, other=ce2}, {type=EndStart, other=ce4}]
+          ce4 -> [{type=StartEnd, other=ce3}]
+        ]
+      }
+  ]
+}

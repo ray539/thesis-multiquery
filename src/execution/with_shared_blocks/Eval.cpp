@@ -21,7 +21,7 @@ namespace execution
       return true;
     }
 
-    return embedding.relationships.contains(reference.boundary_node);
+    return !reference.boundary_node.has_value() || embedding.relationships.contains(reference.boundary_node.value());
   }
 
 
@@ -215,13 +215,13 @@ namespace execution
     std::optional<k::DRelId> boundaryDRel;
     if (block.boundary_node)
     {
-      if (!embedding.relationships.contains(reference.boundary_node))
+      if (reference.boundary_node.has_value() && !embedding.relationships.contains(reference.boundary_node.value()))
       {
         throw std::logic_error(
             "Shared block selected before outer boundary "
             "relationship was matched");
       }
-      boundaryDRel = embedding.relationships.at(reference.boundary_node);
+      boundaryDRel = embedding.relationships.at(reference.boundary_node.value());
     }
 
     auto canExtendEmbeddingWith = [&](const SharedBlockRow &blockRow)

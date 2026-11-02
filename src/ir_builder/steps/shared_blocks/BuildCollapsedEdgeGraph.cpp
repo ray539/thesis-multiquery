@@ -16,7 +16,7 @@ namespace ir_builder
     SharedBlockReference create_shared_reference(
         const EdgeGraphRaw &raw_edge_graph,
         const std::unordered_map<ir_builder::EIdxRaw, node_classification::nc, IntStrongHash> &classification_of_node,
-        const qg::VariableId &collapsed_boundary_node,
+        const std::optional<qg::VariableId> &collapsed_boundary_node,
         const BlockOccurrence &block_occurrence)
     {
       /**
@@ -33,22 +33,22 @@ namespace ir_builder
        * - note that since boundary has it's own outer node which is already matched before coming here,
        *   we don't want to backmap it again
        */
-      size_t block_eidx = 0;
-      for (EIdxRaw node_index_occ : block_occurrence.outer_node_indices)
-      {
-        if (block_occurrence.boundary.has_value() && block_occurrence.boundary->boundary_outer_index == node_index_occ)
+      // size_t block_eidx = 0;
+      for (size_t block_eidx = 0; block_eidx < block_occurrence.outer_node_indices.size(); block_eidx++) {
+        if (block_occurrence.boundary.has_value() && block_occurrence.boundary->boundary_local_index == block_eidx)
+          // don't map back boundary node
           continue;
+
+        EIdxRaw node_index_occ = block_occurrence.outer_node_indices[block_eidx];
         assert(
             std::holds_alternative<node_classification::Inner>(classification_of_node.at(node_index_occ)));
 
         // NOTE: our strong types aren't default constructible. Therefore must use emplace
         // - this throws error on duplicate keys
-
         shared_block_reference.back_mapping
             .emplace(
                 SharedBlockIR::EIdx(block_eidx),
                 raw_edge_graph.node_at(node_index_occ).lv);
-        block_eidx++;
       }
 
       return shared_block_reference;
@@ -86,16 +86,19 @@ namespace ir_builder
         return EIdxCollapsed(new_id);
       };
 
+      bool outer_found = false;
       for (size_t node_index = 0; node_index < raw_edge_graph.num_nodes(); node_index++)
       {
         if (std::holds_alternative<node_classification::Outer>(classification_of_node.at(EIdxRaw(node_index))))
         {
+          outer_found = true;
           EIdxCollapsed new_idx = register_new_node(raw_edge_graph.node_at(EIdxRaw(node_index)));
           collapsed_index_of.emplace(node_index, new_idx);
         }
 
         else if (const auto *boundary = std::get_if<node_classification::Boundary>(&classification_of_node.at(EIdxRaw(node_index))))
         {
+          outer_found = true;
           /**
            * each occurrence must have exactly one boundary
            */
@@ -106,6 +109,7 @@ namespace ir_builder
           {
             if (!occ_to_sb_reference_idx.contains(occ_id))
             {
+              // create the block if not created already
               const BlockOccurrence &block_occurrence = block_occurrences.at(occ_id);
               auto new_ref = create_shared_reference(
                   raw_edge_graph,
@@ -124,7 +128,21 @@ namespace ir_builder
           }
         }
       }
-
+      if (!outer_found) {
+        // entire graph is one shared block node only
+        // everything should be inner
+        for (size_t node_index = 0; node_index < raw_edge_graph.num_nodes(); node_index++) {
+          assert(std::holds_alternative<node_classification::Inner>(classification_of_node.at(EIdxRaw(node_index))));
+        }
+        const BlockOccurrence& block_occurrence = block_occurrences.at(0);
+        auto new_ref = create_shared_reference(
+          raw_edge_graph,
+          classification_of_node,
+          std::nullopt,
+          block_occurrence
+        );
+        register_new_node(new_ref);
+      }
       return std::make_tuple(nodes, collapsed_index_of, dangling_edges);
     }
 

@@ -31,6 +31,7 @@ namespace ir_builder
           continue;
         }
         cmn::Adjacency adjacency = adjacencyOf(myEndpoint, neighbor.endpoint);
+        // std::cout<<to_string(neighbor.relId)<<std::endl;
         PredicateId neighborSignature = levelPrev.at(neighbor.relId);
         ++counts[{adjacency, neighborSignature}];
       }
@@ -81,8 +82,6 @@ namespace ir_builder
     // layer 1 ... 3
     for (int layer = 1; layer <= maxLayers; layer++)
     {
-      // current[relIdx] = predicate for relationship at index relId
-      std::vector<PredicateId> current;
       std::unordered_map<GlobalRelId, PredicateId, IntStrongHash> levelk;
 
       for (auto &[relId, rel] : ge.relationships)
@@ -100,11 +99,8 @@ namespace ir_builder
             .adjacencyRequirements = std::move(requirements)};
 
         PredicateId predId = pRegistry.intern(std::move(predicate));
-        current.push_back(predId);
         ge.relationships.at(relId).signatureId = predId;
         levelk.emplace(relId, predId);
-
-        levelk1 = levelk;
       }
       signatures.push_back(levelk);
     }

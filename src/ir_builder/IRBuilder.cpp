@@ -13,12 +13,21 @@ namespace ir_builder
           "maxLayer must be >= 0");
     }
 
+    // std::cout<<"query graph: "<<std::endl;
+    // std::cout<<qg::to_string(queryGraphs[0])<<std::endl;
+
     // phase 1:
     // - local variables -> globally unqiue Ids for nodes and relationships in each query graph
     GlobalEntities globalEntities = buildGlobalEntities(queryGraphs);
     // phase 2
     // - user predicates -> atomic DSL for relationships
     collectPredicates(queryGraphs, globalEntities);
+
+
+    // std::cout<<"after collect predicates: "<<std::endl;
+    // std::cout<<to_string(globalEntities)<<std::endl;
+
+
     // phase 3
     // - build signatures
     // previous[relIdx] = predicate id for this relIdx
