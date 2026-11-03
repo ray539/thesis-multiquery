@@ -12,3 +12,17 @@ target_link_libraries(ir_builder_test
     query_graph
     ir_builder
 )
+
+# --------------------- kernel_test
+add_executable(kernel_test
+  kernel_test/main.cpp
+)
+target_include_directories(kernel_test
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(kernel_test
+  PRIVATE
+    query_graph
+    kernel
+)
