@@ -69,6 +69,7 @@ add_library(execution
   execution/with_shared_blocks/Eval.cpp
   execution/with_shared_blocks/SharedBlock.cpp
   execution/PredicateEvaluator.cpp
+  execution/CandidateSpace.cpp
 )
 
 target_include_directories(execution

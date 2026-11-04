@@ -8,7 +8,7 @@ namespace execution
   // Executor structural helpers
   // ===========================================================================
 
-  bool Executor::sharedBlockEligible(
+  bool LazyExecutorWithSB::sharedBlockEligible(
       const ib::SharedBlockReference &reference,
       const Embedding &embedding) const
   {
@@ -24,9 +24,7 @@ namespace execution
     return !reference.boundary_node.has_value() || embedding.relationships.contains(reference.boundary_node.value());
   }
 
-
-
-  std::optional<ib::EIdxCollapsed> Executor::chooseNextOuterNode(
+  std::optional<ib::EIdxCollapsed> LazyExecutorWithSB::chooseNextOuterNode(
       const ib::EdgeGraphCollapsed &edgeGraph,
       const Embedding &embedding,
       const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const
@@ -75,14 +73,9 @@ namespace execution
     // - (boundNeighbors, degree)
     auto processedNeighborCount = edgeGraph.frontier(processed);
 
-    std::vector<size_t> indices = processedNeighborCount
-      | std::views::keys
-      | std::views::transform(
-        [&](ib::EIdxCollapsed e) -> size_t {
-          return e.val;          
-        })
-      | std::ranges::to<std::vector<size_t>>();
-
+    std::vector<size_t> indices = processedNeighborCount | std::views::keys | std::views::transform([&](ib::EIdxCollapsed e) -> size_t
+                                                                                                    { return e.val; }) |
+                                  std::ranges::to<std::vector<size_t>>();
 
     auto best = h::indexWhichArgmaxes(
         indices,
@@ -108,12 +101,8 @@ namespace execution
     throw std::logic_error("couldn't find next node. Edge graph has bad shape / was disconnected");
   }
 
-  // ===========================================================================
-  // Outer DFS
-  // ===========================================================================
-
   std::generator<Embedding>
-  Executor::enumerateOuterDFS(
+  LazyExecutorWithSB::enumerateOuterDFS(
       const ib::EdgeGraphCollapsed &edgeGraph,
       QueryExecutionMetrics &metrics,
 
@@ -281,7 +270,8 @@ namespace execution
     while (auto blockRow = iterator.next())
     {
       ++metrics.sharedBlockRowsVisited;
-      if (!canExtendEmbeddingWith(blockRow.value())) {
+      if (!canExtendEmbeddingWith(blockRow.value()))
+      {
         continue;
       }
       extendEmbeddingWith(blockRow.value());
@@ -303,7 +293,8 @@ namespace execution
   // ===========================================================================
   // Public Executor API
   // ===========================================================================
-  std::generator<Embedding> Executor::enumerateQuery(size_t queryIndex)
+
+  std::generator<Embedding> LazyExecutorWithSB::enumerateQuery(size_t queryIndex)
   {
     if (queryIndex >= buildResult_.edgeGraphs.size())
     {
@@ -331,7 +322,7 @@ namespace execution
   }
 
   QueryExecutionResult
-  Executor::executeQuery(size_t queryIndex)
+  LazyExecutorWithSB::executeQuery(size_t queryIndex)
   {
     QueryExecutionResult result;
     for (auto &&embedding : enumerateQuery(queryIndex))

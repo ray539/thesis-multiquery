@@ -13,7 +13,7 @@ namespace execution
   namespace k = kernel;
 
   // ---------------------------------------------------------------------------
-  // Predicate evaluator -- keep your existing implementation
+  // Predicate evaluator
   // ---------------------------------------------------------------------------
 
   struct PredicateEvalKey
@@ -359,7 +359,7 @@ namespace execution
      * choose next node to maximize
      * - (boundNeighbors, degree)
      * return `nullopt` if none found (which means the assignment is fully matched)
-     * 
+     *
      * NOTE
      * - the first node will be chosen to minimize degree only
      */
@@ -373,13 +373,20 @@ namespace execution
   };
 
   // ---------------------------------------------------------------------------
+  // eager executor
+  // ---------------------------------------------------------------------------
+
+
+
+
+  // ---------------------------------------------------------------------------
   // Top-level lazy executor
   // ---------------------------------------------------------------------------
 
-  class Executor
+  class LazyExecutorWithSB
   {
   public:
-    Executor(k::InMemoryDatabase &database, k::DatabaseMetrics &databaseMetrics, ib::BuildResult &buildResult)
+    LazyExecutorWithSB(k::InMemoryDatabase &database, k::DatabaseMetrics &databaseMetrics, ib::BuildResult &buildResult)
         : buildResult_{buildResult},
           database_{database},
           databaseMetrics_{databaseMetrics},
@@ -435,6 +442,9 @@ namespace execution
 
     std::vector<QueryExecutionMetrics> queryMetrics_;
 
+    /**
+     * main enumerator function
+     */
     std::generator<Embedding> enumerateOuterDFS(
         const ib::EdgeGraphCollapsed &edgeGraph,
         QueryExecutionMetrics &metrics,
