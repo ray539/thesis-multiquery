@@ -167,5 +167,26 @@ namespace execution
       return best;
     }
 
+    std::optional<size_t> indexWhichArgmins(
+        const std::vector<size_t> &indices,
+        std::function<bool(size_t)> &&filter,
+        std::function<long double(size_t)> &&scorer)
+    {
+      std::optional<size_t> best;
+      long double bestScore;
+      for (size_t i : indices)
+      {
+        if (!filter(i))
+          continue;
+        long double thisScore = scorer(i);
+        if (!best || thisScore < bestScore)
+        {
+          best = i;
+          bestScore = thisScore;
+        }
+      }
+      return best;
+    }
+
   } // namespace dfs_helper
 } // namespace execution

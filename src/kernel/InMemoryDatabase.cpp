@@ -56,6 +56,13 @@ namespace kernel
         metrics_.database.adjacencyCursorIncrements};
   }
 
+  size_t InMemoryDatabase::nodeDegree(DNodeId node, common::Direction direction) {
+    if (direction == common::Direction::Outgoing) {
+      return outgoing_.at(node).size();
+    }
+    return incoming_.at(node).size();
+  }
+
   std::optional<int64_t> InMemoryDatabase::accessNodeProperty(
       DNodeId node,
       const std::string &property) const

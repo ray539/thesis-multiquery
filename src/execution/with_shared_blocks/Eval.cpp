@@ -27,7 +27,7 @@ namespace execution
   std::optional<ib::EIdxCollapsed> LazyExecutorWithSB::chooseNextOuterNode(
       const ib::EdgeGraphCollapsed &edgeGraph,
       const Embedding &embedding,
-      const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const
+      const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &alreadyBound) const
   {
     /**
      * either
@@ -44,7 +44,7 @@ namespace execution
       return true;
     };
 
-    if (processed.empty())
+    if (alreadyBound.empty())
     {
       // no edge graph nodes have been processed yet.
       // choose best regular node (according to degree) (which is not a SharedBlockReference)
@@ -71,11 +71,15 @@ namespace execution
     }
     // choose next eligible node (if SB, boundary bound) which maximzies
     // - (boundNeighbors, degree)
-    auto processedNeighborCount = edgeGraph.frontier(processed);
+    auto processedNeighborCount = edgeGraph.frontier(alreadyBound);
 
-    std::vector<size_t> indices = processedNeighborCount | std::views::keys | std::views::transform([&](ib::EIdxCollapsed e) -> size_t
-                                                                                                    { return e.val; }) |
-                                  std::ranges::to<std::vector<size_t>>();
+    std::vector<size_t> indices = 
+      processedNeighborCount | 
+      std::views::keys | 
+      std::views::transform([&](ib::EIdxCollapsed e) -> size_t {
+        return e.val;
+      }) |
+      std::ranges::to<std::vector<size_t>>();
 
     auto best = h::indexWhichArgmaxes(
         indices,
@@ -88,9 +92,10 @@ namespace execution
         [&](size_t i)
         {
           ib::EIdxCollapsed idx(i);
-          size_t boundNeighbors = processedNeighborCount.at(idx);
-          size_t degree = edgeGraph.adj(idx).size();
-          return boundNeighbors * 10000 + degree;
+          size_t boundDegree = processedNeighborCount.at(idx);
+          size_t nodeDegree = edgeGraph.adj(idx).size();
+          size_t multiplier = edgeGraph.num_nodes() + 1;
+          return boundDegree * multiplier + nodeDegree;
         });
     if (best.has_value())
     {

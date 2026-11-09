@@ -252,6 +252,11 @@ namespace execution
         std::function<bool(size_t)> &&filter,
         std::function<int64_t(size_t)> &&scorer);
 
+    std::optional<size_t> indexWhichArgmins(
+        const std::vector<size_t> &indices,
+        std::function<bool(size_t)> &&filter,
+        std::function<long double(size_t)> &&scorer);
+
   } // namespace dfs_helper
 
   // ---------------------------------------------------------------------------
@@ -373,14 +378,418 @@ namespace execution
   };
 
   // ---------------------------------------------------------------------------
+  // candidate sets
+  // ---------------------------------------------------------------------------
+
+  /**
+   * fields
+   * - `candidates: vector<DRelId>`
+   * - `membership: set<DRelId>` for membership testing
+   */
+  struct CandidateSet
+  {
+    std::vector<kernel::DRelId> candidates;
+    std::unordered_set<
+        kernel::DRelId,
+        IntStrongHash>
+        membership;
+
+    void addDrel(k::DRelId drel)
+    {
+      if (membership.contains(drel))
+        return;
+      candidates.push_back(drel);
+      membership.insert(drel);
+    }
+  };
+
+  /**
+   * fields:
+   * - `sourcePredicate:PredId`
+   * - `targetPredicate:PredId`
+   * - `adjacency:Adjacency`
+   */
+  struct CandidateAdjacencyKey
+  {
+    ir_builder::PredicateId sourcePredicate;
+    ir_builder::PredicateId targetPredicate;
+    common::Adjacency adjacency;
+    bool operator==(const CandidateAdjacencyKey &) const = default;
+  };
+
+  struct CandidateAdjacencyKeyHash
+  {
+    size_t operator()(const CandidateAdjacencyKey &key) const noexcept
+    {
+      size_t h = IntStrongHash{}(key.sourcePredicate);
+      common::hashCombine(h, key.targetPredicate.val);
+      common::hashCombine(h, static_cast<int>(key.adjacency));
+      return h;
+    }
+  };
+
+  /**
+   * strong type for `RelId -> vector<RelId>`
+   */
+  struct CandidateAdjacency
+  {
+    std::unordered_map<
+        k::DRelId,
+        std::vector<k::DRelId>,
+        IntStrongHash>
+        neighbors;
+  };
+
+  /**
+   * fields
+   * - `predicateOfRelationship: GlobalRelId -> PredicateId`
+   */
+  struct QueryCandidateSpace
+  {
+    std::unordered_map<
+        ib::GlobalRelId,
+        ib::PredicateId,
+        IntStrongHash>
+        predicateOfRelationship;
+  };
+
+  class CandidateSpace
+  {
+  public:
+    /**
+     * candidates for a given predicate
+     */
+    const std::vector<k::DRelId> &candidates(ib::PredicateId predicate) const;
+
+    /**
+     * Return candidates in targetPredicate adjacent to source according to
+     * the specified adjacency type.
+     *
+     * source is assumed to belong to C(sourcePredicate).
+     */
+    const std::vector<k::DRelId> &adj(
+        ib::PredicateId sourcePredicate,
+        k::DRelId source,
+        ib::PredicateId targetPredicate,
+        common::Adjacency adjacency) const;
+
+    const QueryCandidateSpace &query(size_t queryIndex) const;
+
+  private:
+    friend class CandidateSpaceBuilder;
+
+    /**
+     * candidate set nodes
+     * - `C(pi)`
+     */
+    std::unordered_map<
+        ib::PredicateId,
+        CandidateSet,
+        IntStrongHash>
+        candidatesBySignature_;
+
+    /**
+     * data used to answer `adj` function calls
+     * (p0:PredId, p1:PredId, StartEnd) -> DRelId -> vector<DRelId>
+     */
+    std::unordered_map<
+        CandidateAdjacencyKey,
+        CandidateAdjacency,
+        CandidateAdjacencyKeyHash>
+        adjacency_;
+
+    std::vector<QueryCandidateSpace> queries_;
+  };
+
+  class CandidateSpaceBuilder
+  {
+  public:
+    CandidateSpaceBuilder(
+        const ib::BuildResult &buildResult,
+        k::CachedDatabaseAccess &database,
+        PredicateEvaluator &predicateEvaluator)
+        : buildResult_{buildResult},
+          database_{database},
+          predicateEvaluator_{predicateEvaluator}
+    {
+    }
+
+    /**
+     * Build a CSS using signatures from the requested hierarchical level.
+     *
+     * Example:
+     *   build(0) -> base predicates only
+     *   build(1) -> level-1 hierarchical signatures
+     *   ...
+     */
+    CandidateSpace build(size_t signatureLevel);
+
+  private:
+    const ib::BuildResult &buildResult_;
+    k::CachedDatabaseAccess &database_;
+    PredicateEvaluator &predicateEvaluator_;
+
+    using PredicateSet =
+        std::unordered_set<
+            ib::PredicateId,
+            IntStrongHash>;
+
+    using AdjacencyRequirementSet =
+        std::unordered_set<
+            CandidateAdjacencyKey,
+            CandidateAdjacencyKeyHash>;
+
+    ib::PredicateId signatureFor(ib::GlobalRelId relationship, size_t signatureLevel) const;
+
+    /**
+     * - modify each QueryCandidateSpace (relId -> predId) mapping
+     * return
+     * - `requiredPredicates`: set of predicate ids found in at least one edge graph node
+     * - `requiredAdjacencies`: list of CandidiateAdjacency pairs
+     */
+    std::pair<PredicateSet, AdjacencyRequirementSet> collectRequirements(
+        CandidateSpace &space,
+        size_t signatureLevel) const;
+
+    /**
+     * essentially performs
+     * ```
+     * for drel in db.allRelationships
+     *   for pred in requiredPredicates
+     *     if evaluate(drel, pred)
+     *       C[pred].add(drel)
+     * ```
+     *
+     */
+    void buildCandidateSets(
+        CandidateSpace &space,
+        const PredicateSet &requiredPredicates);
+
+    /**
+     * see `buildCandidateAdjacency`
+     */
+    void buildCandidateAdjacencies(
+        CandidateSpace &space,
+        const AdjacencyRequirementSet &requiredAdjacencies);
+
+    /**
+     * for each candidate adjacency `(p0:PredId, p1:PredId, type)`,
+     * - look through all drels in `C[p0]`, and create it's
+     *   adjacency list in `C[p1]`
+     */
+    void buildCandidateAdjacency(
+        CandidateSpace &space,
+        const CandidateAdjacencyKey &key);
+
+    /**
+     * Build Adj(p0, p1, adjacency, source) by traversing the database adjacency
+     * cursor and checking membership in C(p1).
+     * - `source:Drel, adjacency`: describes the node to get the adjacent relationships from
+     * - `targetCandidates:CandidateSet`: where each target neighbor has to belong to
+     */
+    void buildAdjacencyUsingCursor(
+        k::DRelId source,
+        const CandidateSet &targetCandidates,
+        common::Adjacency adjacency,
+        std::vector<k::DRelId> &output);
+
+    /**
+     * Build Adj(p0, p1, adjacency, source) by traversing C(p1) and checking
+     * endpoint equality.
+     * - `source:Drel, adjacency`: describes the node to get the adjacent relationships from
+     * - `targetCandidates:CandidateSet`: where each target neighbor has to belong to
+     */
+    void buildAdjacencyUsingCandidateSet(
+        k::DRelId source,
+        const CandidateSet &targetCandidates,
+        common::Adjacency adjacency,
+        std::vector<k::DRelId> &output);
+  };
+
+  // ---------------------------------------------------------------------------
   // eager executor
   // ---------------------------------------------------------------------------
 
+  enum class EagerOrderingStrategy
+  {
+    SmallestSetFirst,
+    ConnectedGreedy,
+    LazyGreedy,
+  };
 
+  struct EagerExecutorOptions
+  {
+    size_t signatureLevel = 3;
 
+    EagerOrderingStrategy ordering =
+        EagerOrderingStrategy::ConnectedGreedy;
+  };
+
+  struct EagerExecutionMetrics
+  {
+    std::vector<uint64_t> recursiveCallsAtDepth;
+
+    uint64_t candidatesVisited = 0;
+    uint64_t rejectedByUniqueness = 0;
+    uint64_t rejectedByAdjacency = 0;
+
+    uint64_t completeMatches = 0;
+
+    /**
+     * Query relationship matching order.
+     *
+     * The ordering strategies implemented here depend only on the query graph,
+     * candidate set sizes and the processed query nodes, so all branches use
+     * the same order.
+     */
+    std::vector<ib::EIdxCollapsed> matchingOrder;
+  };
+
+  class EagerExecutor
+  {
+  public:
+    /**
+     * Builds the CandidateSpace immediately using options.signatureLevel.
+     *
+     * PredicateEvaluator is supplied externally so its filtering semantics can
+     * be configured independently of the eager executor.
+     */
+    EagerExecutor(
+        const ib::BuildResult &buildResult,
+        k::CachedDatabaseAccess &database,
+        PredicateEvaluator &predicateEvaluator,
+        EagerExecutorOptions options = {});
+
+    /**
+     * Materialize all embeddings for one query.
+     */
+    std::vector<Embedding> executeQuery(size_t queryIndex);
+
+    const CandidateSpace &candidateSpace() const
+    {
+      return candidateSpace_;
+    }
+
+    const EagerExecutionMetrics &metrics() const
+    {
+      return metrics_;
+    }
+
+  private:
+    /**
+     * fields
+     * - `ib::EIdxCollapsed boundNode`: query node of this bound neighbor
+     * - `ib::PredicateId boundNodePredicate`: predicate this bound neighbor satisfies
+     * - `k::DrelId boundNodeDrel`: drel of this bound neighbor
+     * - `common::Adjacency qnodeToBoundNode`: adjacency from NEWLY MATCHED qnode to this bound neighbor
+     */
+    struct BoundNeighbor
+    {
+      ib::EIdxCollapsed boundNode;
+      ib::PredicateId boundNodePredicate;
+      k::DRelId boundNodeDrel;
+      /**
+       * Adjacency from the current qnode being matched to this bound neighbor
+       */
+      common::Adjacency qnodeToBoundNode;
+    };
+
+    const ib::BuildResult &buildResult_;
+    k::CachedDatabaseAccess &database_;
+    PredicateEvaluator &predicateEvaluator_;
+
+    EagerExecutorOptions options_;
+
+    CandidateSpace candidateSpace_;
+
+    EagerExecutionMetrics metrics_;
+
+    void backtrack(
+        size_t queryIndex,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        Embedding &embedding,
+        std::unordered_set<k::DRelId, IntStrongHash> &usedRelationships,
+        std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed,
+        std::vector<Embedding> &output);
+
+    std::optional<ib::EIdxCollapsed> chooseNextNode(
+        size_t queryIndex,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const;
+
+    std::optional<ib::EIdxCollapsed> chooseSmallestSetFirst(
+        size_t queryIndex,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const;
+
+    std::optional<ib::EIdxCollapsed> chooseConnectedGreedy(
+        size_t queryIndex,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const;
+
+    std::optional<ib::EIdxCollapsed> chooseLazyGreedy(
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const;
+
+    /**
+     * Query relationship degree: number of distinct adjacent query relationship
+     * nodes.
+     */
+    size_t degree(
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed node) const;
+
+    /**
+     * Number of distinct adjacent query relationship nodes already bound.
+     */
+    size_t boundDegree(
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed node,
+        const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const;
+
+    size_t candidateSetSize(
+        size_t queryIndex,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed node) const;
+
+    ib::PatternRelationshipIR relationshipAt(
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed node) const;
+
+    ib::PredicateId predicateOf(
+        size_t queryIndex,
+        const ib::PatternRelationshipIR &relationship) const;
+
+    /**
+     * Bound query neighbors of current.
+     */
+    std::vector<BoundNeighbor> boundNeighbors(
+        size_t queryIndex,
+        const ib::EdgeGraphCollapsed &edgeGraph,
+        ib::EIdxCollapsed current,
+        const Embedding &embedding,
+        const std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &processed) const;
+
+    /**
+     * Check all already-bound query adjacency constraints.
+     */
+    bool satisfiesBoundNeighbors(
+        k::DRelId candidate,
+        const std::vector<BoundNeighbor> &neighbors);
+
+    /**
+     * Pick the smallest CSS adjacency list among all already-bound neighbors.
+     *
+     * Returns nullptr if current has no bound neighbors, meaning the executor
+     * should iterate over the whole C(predicate).
+     */
+    const std::vector<k::DRelId> *chooseExpansionCandidates(
+        ib::PredicateId currentPredicate,
+        const std::vector<BoundNeighbor> &neighbors) const;
+  };
 
   // ---------------------------------------------------------------------------
-  // Top-level lazy executor
+  // lazy executor
   // ---------------------------------------------------------------------------
 
   class LazyExecutorWithSB

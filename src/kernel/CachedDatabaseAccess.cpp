@@ -12,6 +12,10 @@ namespace kernel
     return db_.accessAdjacentRels(node, direction);
   }
 
+  size_t CachedDatabaseAccess::nodeDegree(DNodeId node, common::Direction direction) {
+    return db_.nodeDegree(node, direction);
+  }
+
   std::optional<int64_t> CachedDatabaseAccess::nodeProperty(DNodeId node, const std::string &property)
   {
     auto key = DNodePropertyKey{node, property};

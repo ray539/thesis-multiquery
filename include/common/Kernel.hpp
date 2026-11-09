@@ -93,28 +93,19 @@ namespace kernel
     // cursor to relationships
     RelationshipCursor getRelationshipCursor();
 
-    RelationshipCursor accessAdjacentRels(
-        DNodeId node,
-        common::Direction direction);
+    RelationshipCursor accessAdjacentRels(DNodeId node, common::Direction direction);
 
-    std::optional<int64_t> accessNodeProperty(
-        DNodeId node,
-        const std::string &property) const;
+    size_t nodeDegree(DNodeId node, common::Direction direction);
 
-    std::optional<int64_t> accessRelationshipProperty(
-        DRelId rel,
-        const std::string &property) const;
+    std::optional<int64_t> accessNodeProperty(DNodeId node, const std::string &property) const;
 
-    DNodeId accessRelationshipEndpoint(
-        DRelId rel,
-        common::Endpoint endpoint) const;
+    std::optional<int64_t> accessRelationshipProperty(DRelId rel, const std::string &property) const;
 
-    const std::string &accessRelationshipType(
-        DRelId rel) const;
+    DNodeId accessRelationshipEndpoint(DRelId rel, common::Endpoint endpoint) const;
 
-    bool accessNodeHasLabel(
-        DNodeId node,
-        const std::string &label) const;
+    const std::string &accessRelationshipType(DRelId rel) const;
+
+    bool accessNodeHasLabel(DNodeId node, const std::string &label) const;
 
   private:
     DatabaseMetrics &metrics_;
@@ -206,6 +197,8 @@ namespace kernel
     RelationshipCursor getRelationshipCursor();
 
     RelationshipCursor accessAdjacentRels(DNodeId node, common::Direction direction);
+
+    size_t nodeDegree(DNodeId node, common::Direction direction);
 
     std::optional<int64_t> nodeProperty(DNodeId node, const std::string &property);
 

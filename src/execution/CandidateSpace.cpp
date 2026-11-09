@@ -1,4 +1,4 @@
-#include <execution/ExecutionInternal.hpp>
+#include <common/Execution.hpp>
 
 namespace execution
 {
@@ -24,7 +24,6 @@ namespace execution
     };
 
     const CandidateAdjacency &candidateAdjacency = adjacency_.at(key);
-
     return candidateAdjacency.neighbors.at(source);
   }
 
@@ -43,33 +42,22 @@ namespace execution
   {
     if (signatureLevel >= buildResult_.signatures.size())
     {
-      throw std::out_of_range(
-          "CandidateSpaceBuilder: requested signature level does not exist");
+      throw std::out_of_range("CandidateSpaceBuilder: requested signature level does not exist");
     }
-
     const auto &signatures = buildResult_.signatures.at(signatureLevel);
-    auto it = signatures.find(relationship);
-    if (it == signatures.end())
+    if (!signatures.contains(relationship))
     {
-      throw std::logic_error(
-          "CandidateSpaceBuilder: relationship has no signature at requested level");
+      throw std::logic_error("CandidateSpaceBuilder: relationship has no signature at requested level");
     }
-
-    return it->second;
+    return signatures.at(relationship);
   }
 
   CandidateSpace CandidateSpaceBuilder::build(size_t signatureLevel)
   {
     CandidateSpace result;
-
-    PredicateSet requiredPredicates;
-    AdjacencyRequirementSet requiredAdjacencies;
-
-    collectRequirements(
+    auto [requiredPredicates, requiredAdjacencies] = collectRequirements(
         result,
-        signatureLevel,
-        requiredPredicates,
-        requiredAdjacencies);
+        signatureLevel);
 
     buildCandidateSets(
         result,
@@ -86,13 +74,16 @@ namespace execution
   // Requirement collection
   // ---------------------------------------------------------------------------
 
-  void CandidateSpaceBuilder::collectRequirements(
+  std::pair<
+      CandidateSpaceBuilder::PredicateSet,
+      CandidateSpaceBuilder::AdjacencyRequirementSet>
+  CandidateSpaceBuilder::collectRequirements(
       CandidateSpace &space,
-      size_t signatureLevel,
-      PredicateSet &requiredPredicates,
-      AdjacencyRequirementSet &requiredAdjacencies) const
+      size_t signatureLevel) const
   {
     space.queries_.resize(buildResult_.edgeGraphs.size());
+    PredicateSet requiredPredicates;
+    AdjacencyRequirementSet requiredAdjacencies;
 
     for (size_t queryIndex = 0; queryIndex < buildResult_.edgeGraphs.size(); ++queryIndex)
     {
@@ -100,11 +91,8 @@ namespace execution
       QueryCandidateSpace &querySpace = space.queries_.at(queryIndex);
 
       // -----------------------------------------------------------------------
-      // First pass:
-      //
-      // query relationship -> signature
+      // build all query relationship -> signature maps in predicateOfRelationship
       // -----------------------------------------------------------------------
-
       for (size_t i = 0; i < edgeGraph.num_nodes(); ++i)
       {
         ib::EIdxCollapsed eidx{i};
@@ -113,35 +101,27 @@ namespace execution
 
         if (relationship == nullptr)
         {
-          throw std::logic_error(
-              "CandidateSpaceBuilder currently does not support SharedBlockReference nodes");
+          throw std::logic_error("CandidateSpaceBuilder does not support SharedBlockReference nodes");
         }
 
         ib::PredicateId predicate = signatureFor(relationship->global_rel_id, signatureLevel);
-        auto [_, inserted] = querySpace.predicateOfRelationship.emplace(
-            relationship->global_rel_id, predicate);
+        auto [_, inserted] = querySpace.predicateOfRelationship.emplace(relationship->global_rel_id, predicate);
 
         if (!inserted)
         {
           throw std::logic_error(
               "CandidateSpaceBuilder: duplicate relationship in query candidate space");
         }
-
         requiredPredicates.insert(predicate);
       }
 
       // -----------------------------------------------------------------------
-      // Second pass:
-      //
-      // Collect each directed edge already represented by EdgeGraph.
-      //
-      // We intentionally DO NOT insert the reverse edge here. EdgeGraph already
-      // contains the adjacency in both directions.
+      // transform each directed edge in the EdgeGraph into a CandidateAdjacency key
       // -----------------------------------------------------------------------
       for (size_t i = 0; i < edgeGraph.num_nodes(); ++i)
       {
         ib::EIdxCollapsed sourceIndex{i};
-        const ib::NodeType sourceNode =  edgeGraph.node_at(sourceIndex);
+        const ib::NodeType sourceNode = edgeGraph.node_at(sourceIndex);
         const auto *sourceRelationship = std::get_if<ib::PatternRelationshipIR>(&sourceNode);
 
         if (sourceRelationship == nullptr)
@@ -164,8 +144,7 @@ namespace execution
 
           const ib::NodeType targetNode = edgeGraph.node_at(edge.other);
 
-          const auto *targetRelationship =
-              std::get_if<ib::PatternRelationshipIR>(&targetNode);
+          const auto *targetRelationship = std::get_if<ib::PatternRelationshipIR>(&targetNode);
 
           if (targetRelationship == nullptr)
           {
@@ -173,9 +152,7 @@ namespace execution
                 "CandidateSpaceBuilder currently does not support SharedBlockReference nodes");
           }
 
-          ib::PredicateId targetPredicate =
-              querySpace.predicateOfRelationship.at(
-                  targetRelationship->global_rel_id);
+          ib::PredicateId targetPredicate = querySpace.predicateOfRelationship.at(targetRelationship->global_rel_id);
 
           requiredAdjacencies.insert(
               CandidateAdjacencyKey{
@@ -186,6 +163,7 @@ namespace execution
         }
       }
     }
+    return {requiredPredicates, requiredAdjacencies};
   }
 
   // ---------------------------------------------------------------------------
@@ -202,26 +180,15 @@ namespace execution
       space.candidatesBySignature_.emplace(predicate, CandidateSet{});
     }
 
-    k::RelationshipCursor cursor =
-        database_.getRelationshipCursor();
+    k::RelationshipCursor cursor = database_.getRelationshipCursor();
 
     k::DRelId drel{0};
-
     while (cursor.next(drel))
     {
       for (ib::PredicateId predicate : requiredPredicates)
       {
-        if (!predicateEvaluator_.evaluate(predicate, drel))
-          continue;
-
-        CandidateSet &candidateSet =
-            space.candidatesBySignature_.at(predicate);
-
-        auto [_, inserted] =
-            candidateSet.membership.insert(drel);
-
-        if (inserted)
-          candidateSet.candidates.push_back(drel);
+        if (!predicateEvaluator_.evaluate(predicate, drel)) continue;
+        space.candidatesBySignature_.at(predicate).addDrel(drel);
       }
     }
   }
@@ -246,60 +213,36 @@ namespace execution
       CandidateSpace &space,
       const CandidateAdjacencyKey &key)
   {
-    const CandidateSet &sourceCandidates =
-        space.candidatesBySignature_.at(key.sourcePredicate);
+    const CandidateSet &sourceCandidates = space.candidatesBySignature_.at(key.sourcePredicate);
+    const CandidateSet &targetCandidates = space.candidatesBySignature_.at(key.targetPredicate);
 
-    const CandidateSet &targetCandidates =
-        space.candidatesBySignature_.at(key.targetPredicate);
-
-    auto [it, inserted] =
-        space.adjacency_.try_emplace(
-            key,
-            CandidateAdjacency{});
-
-    if (!inserted)
-    {
+    if (space.adjacency_.contains(key)) {
       throw std::logic_error(
           "CandidateSpaceBuilder: candidate adjacency constructed twice");
     }
 
-    CandidateAdjacency &candidateAdjacency =
-        it->second;
-
+    space.adjacency_.emplace(key, CandidateAdjacency{});
+    CandidateAdjacency &candidateAdjacency = space.adjacency_.at(key);
     for (k::DRelId source : sourceCandidates.candidates)
     {
-      auto [neighborIt, _] =
-          candidateAdjacency.neighbors.emplace(
-              source,
-              std::vector<k::DRelId>{});
-
-      std::vector<k::DRelId> &neighbors =
-          neighborIt->second;
-
+      // construct neighbors of this (p0,p1,type) -> drel
+      auto [neighborIt, _] = candidateAdjacency.neighbors.emplace(source, std::vector<k::DRelId>{});
+      std::vector<k::DRelId> &neighbors = neighborIt->second;
+    
       if (targetCandidates.candidates.empty())
         continue;
 
-      k::DNodeId anchorNode =
-          database_.endpoint(
-              source,
-              common::myEndpoint(key.adjacency));
-
-      common::Direction neighborDirection =
-          common::neighborDirection(key.adjacency);
-
-      size_t degree =
-          database_.nodeDegree(
-              anchorNode,
-              neighborDirection);
+      k::DNodeId anchorNode = database_.endpoint(source, common::myEndpoint(key.adjacency));
+      common::Direction neighborDirection = common::neighborDirection(key.adjacency);
+      size_t degree = database_.nodeDegree(anchorNode, neighborDirection);
 
       // -----------------------------------------------------------------------
       // Compute:
       //
-      //   N_A(source) intersect C(targetPredicate)
+      //   Neighbor(source) intersect C(targetPredicate)
       //
       // by traversing whichever side is smaller.
       // -----------------------------------------------------------------------
-
       if (degree <= targetCandidates.candidates.size())
       {
         buildAdjacencyUsingCursor(
@@ -329,21 +272,10 @@ namespace execution
       common::Adjacency adjacency,
       std::vector<k::DRelId> &output)
   {
-    k::DNodeId anchorNode =
-        database_.endpoint(
-            source,
-            common::myEndpoint(adjacency));
-
-    common::Direction direction =
-        common::neighborDirection(adjacency);
-
-    k::RelationshipCursor cursor =
-        database_.adjacent(
-            anchorNode,
-            direction);
-
+    k::DNodeId anchorNode = database_.endpoint(source, common::myEndpoint(adjacency));
+    common::Direction direction = common::neighborDirection(adjacency);
+    k::RelationshipCursor cursor = database_.adjacent(anchorNode, direction);
     k::DRelId candidate{0};
-
     while (cursor.next(candidate))
     {
       if (targetCandidates.membership.contains(candidate))
@@ -361,21 +293,12 @@ namespace execution
       common::Adjacency adjacency,
       std::vector<k::DRelId> &output)
   {
-    k::DNodeId sourceEndpoint =
-        database_.endpoint(
-            source,
-            common::myEndpoint(adjacency));
-
-    common::Endpoint targetEndpointType =
-        common::neighborEndpoint(adjacency);
+    k::DNodeId sourceEndpoint = database_.endpoint(source, common::myEndpoint(adjacency));
+    common::Endpoint targetEndpointType = common::neighborEndpoint(adjacency);
 
     for (k::DRelId target : targetCandidates.candidates)
     {
-      k::DNodeId targetEndpoint =
-          database_.endpoint(
-              target,
-              targetEndpointType);
-
+      k::DNodeId targetEndpoint = database_.endpoint(target, targetEndpointType);
       if (sourceEndpoint == targetEndpoint)
         output.push_back(target);
     }
