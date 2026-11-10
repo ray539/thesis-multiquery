@@ -12,6 +12,19 @@ namespace execution
   namespace qg = query_graph;
   namespace k = kernel;
 
+  enum class NeighborhoodCondition
+  {
+    Existence,
+    ExistenceDegree,
+    BipartiteMatching,
+  };
+
+  struct PredicateEvaluatorConfig
+  {
+    NeighborhoodCondition neighborhoodCondition =
+        NeighborhoodCondition::BipartiteMatching;
+  };
+
   // ---------------------------------------------------------------------------
   // Predicate evaluator
   // ---------------------------------------------------------------------------
@@ -23,7 +36,7 @@ namespace execution
 
     bool operator==(const PredicateEvalKey &) const = default;
   };
-}
+} // namespace execution
 
 template <>
 struct std::hash<execution::PredicateEvalKey>
@@ -38,16 +51,19 @@ struct std::hash<execution::PredicateEvalKey>
 
 namespace execution
 {
+
   class PredicateEvaluator
   {
   public:
     PredicateEvaluator(
         ib::PredicateRegistry &registry,
         k::CachedDatabaseAccess &db,
-        k::DatabaseMetrics &metrics)
+        k::DatabaseMetrics &metrics,
+        PredicateEvaluatorConfig config = {})
         : registry_{registry},
           db_{db},
-          metrics_{metrics}
+          metrics_{metrics},
+          config_{config}
     {
     }
 
@@ -55,10 +71,24 @@ namespace execution
         ib::PredicateId predicate,
         k::DRelId drel);
 
+    const PredicateEvaluatorConfig &config() const
+    {
+      return config_;
+    }
+
   private:
     ib::PredicateRegistry &registry_;
     k::CachedDatabaseAccess &db_;
     k::DatabaseMetrics &metrics_;
+
+    // Config is deliberately immutable after construction.
+    //
+    // Therefore the existing cache key:
+    //
+    //   (PredicateId, DRelId)
+    //
+    // remains valid.
+    const PredicateEvaluatorConfig config_;
 
     std::unordered_map<
         PredicateEvalKey,
@@ -69,13 +99,37 @@ namespace execution
         const ib::BaseRelPredicate &predicate,
         k::DRelId drel);
 
+    bool evaluateOther(
+        const ib::OtherRelPredicate &predicate,
+        k::DRelId drel);
+
+    bool evaluateExistence(
+        const ib::OtherRelPredicate &predicate,
+        k::DRelId drel);
+
+    bool evaluateExistenceDegree(
+        const ib::OtherRelPredicate &predicate,
+        k::DRelId drel);
+
+    bool evaluateBipartiteMatching(
+        const ib::OtherRelPredicate &predicate,
+        k::DRelId drel);
+
+    bool hasMatchingNeighbor(
+        k::DRelId drel,
+        const ib::AdjacencyRequirement &req);
+
     std::vector<k::DRelId> matchingNeighbors(
         k::DRelId drel,
         const ib::AdjacencyRequirement &req);
 
-    bool evaluateOther(
-        const ib::OtherRelPredicate &predicate,
-        k::DRelId drel);
+    /**
+     * Wrapper over db_.nodeDegree to handle cases like
+     * - `<-[me]-()->`: here, when you do `nodeDegree(my start node)`, the degree includes myself as well
+     */
+    size_t availableNeighborDegree(
+        k::DRelId drel,
+        common::Adjacency adjacency);
 
     bool evaluateUncached(
         ib::PredicateId predicateId,

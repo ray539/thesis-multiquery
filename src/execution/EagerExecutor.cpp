@@ -18,6 +18,7 @@ namespace execution
                 predicateEvaluator_}
                 .build(options_.signatureLevel)}
   {
+
   }
 
   // ---------------------------------------------------------------------------
@@ -47,7 +48,7 @@ namespace execution
     std::unordered_set<
         ib::EIdxCollapsed,
         IntStrongHash>
-        processed;
+        alreadyBound;
 
     std::vector<Embedding> output;
 
@@ -56,7 +57,7 @@ namespace execution
         edgeGraph,
         embedding,
         usedRelationships,
-        processed,
+        alreadyBound,
         output);
 
     return output;

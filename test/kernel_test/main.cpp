@@ -15,177 +15,158 @@ namespace k = kernel;
  */
 void test_raw_kernel()
 {
-  k::DatabaseMetrics metrics;
-  k::InMemoryDatabase db{metrics};
-  k::DNodeId n0{0};
-  k::DNodeId n1{1};
-  k::DNodeId n2{2};
+    k::DatabaseMetrics metrics;
+    k::InMemoryDatabase db{metrics};
 
-  k::DRelId r0{0};
-  k::DRelId r1{1};
-  k::DRelId r2{2};
+    auto n0 = db.addNode(
+        {
+            {"age", 20},
+            {"score", 100},
+        },
+        {
+            "Person",
+            "Student",
+        });
 
-  db.addNode(
-      k::DNode{
-          .id = n0,
-          .properties = {
-              {"age", 20},
-              {"score", 100},
-          },
-          .labels = {
-              "Person",
-              "Student",
-          }});
+    auto n1 = db.addNode(
+        {
+            {"age", 30},
+        },
+        {
+            "Person",
+        });
 
-  db.addNode(
-      k::DNode{
-          .id = n1,
-          .properties = {
-              {"age", 30},
-          },
-          .labels = {
-              "Person",
-          }});
+    auto n2 = db.addNode(
+        {
+            {"value", 50},
+        },
+        {
+            "Item",
+        });
 
-  db.addNode(
-      k::DNode{
-          .id = n2,
-          .properties = {
-              {"value", 50},
-          },
-          .labels = {
-              "Item",
-          }});
+    auto r0 = db.addRelationship(
+        n0,
+        n1,
+        "KNOWS",
+        {
+            {"weight", 5},
+        });
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r0,
-          .start = n0,
-          .end = n1,
-          .relType = "KNOWS",
-          .properties = {
-              {"weight", 5},
-          }});
+    auto r1 = db.addRelationship(
+        n1,
+        n2,
+        "LIKES",
+        {
+            {"weight", 10},
+        });
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r1,
-          .start = n1,
-          .end = n2,
-          .relType = "LIKES",
-          .properties = {
-              {"weight", 10},
-          }});
+    auto r2 = db.addRelationship(
+        n0,
+        n2,
+        "FOLLOWS",
+        {});
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r2,
-          .start = n0,
-          .end = n2,
-          .relType = "FOLLOWS",
-          .properties = {}});
+    // ---------------------------------------------------------------------------
+    // Node property access
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Node property access
-  // ---------------------------------------------------------------------------
+    assert(db.accessNodeProperty(n0, "age") == 20);
+    assert(db.accessNodeProperty(n0, "score") == 100);
+    assert(db.accessNodeProperty(n1, "age") == 30);
 
-  assert(db.accessNodeProperty(n0, "age") == 20);
-  assert(db.accessNodeProperty(n0, "score") == 100);
-  assert(db.accessNodeProperty(n1, "age") == 30);
+    assert(!db.accessNodeProperty(n0, "missing").has_value());
 
-  assert(!db.accessNodeProperty(n0, "missing").has_value());
+    // ---------------------------------------------------------------------------
+    // Relationship property access
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Relationship property access
-  // ---------------------------------------------------------------------------
+    assert(db.accessRelationshipProperty(r0, "weight") == 5);
+    assert(db.accessRelationshipProperty(r1, "weight") == 10);
 
-  assert(db.accessRelationshipProperty(r0, "weight") == 5);
-  assert(db.accessRelationshipProperty(r1, "weight") == 10);
+    assert(!db.accessRelationshipProperty(r2, "weight").has_value());
 
-  assert(!db.accessRelationshipProperty(r2, "weight").has_value());
+    // ---------------------------------------------------------------------------
+    // Endpoints
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Endpoints
-  // ---------------------------------------------------------------------------
+    assert(db.accessRelationshipEndpoint(r0, common::Endpoint::Start) == n0);
+    assert(db.accessRelationshipEndpoint(r0, common::Endpoint::End) == n1);
 
-  assert(db.accessRelationshipEndpoint(r0, common::Endpoint::Start) == n0);
-  assert(db.accessRelationshipEndpoint(r0, common::Endpoint::End) == n1);
+    assert(db.accessRelationshipEndpoint(r1, common::Endpoint::Start) == n1);
+    assert(db.accessRelationshipEndpoint(r1, common::Endpoint::End) == n2);
 
-  assert(db.accessRelationshipEndpoint(r1, common::Endpoint::Start) == n1);
-  assert(db.accessRelationshipEndpoint(r1, common::Endpoint::End) == n2);
+    // ---------------------------------------------------------------------------
+    // Relationship types
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Relationship types
-  // ---------------------------------------------------------------------------
+    assert(db.accessRelationshipType(r0) == "KNOWS");
+    assert(db.accessRelationshipType(r1) == "LIKES");
+    assert(db.accessRelationshipType(r2) == "FOLLOWS");
 
-  assert(db.accessRelationshipType(r0) == "KNOWS");
-  assert(db.accessRelationshipType(r1) == "LIKES");
-  assert(db.accessRelationshipType(r2) == "FOLLOWS");
+    // ---------------------------------------------------------------------------
+    // Labels
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Labels
-  // ---------------------------------------------------------------------------
+    assert(db.accessNodeHasLabel(n0, "Person"));
+    assert(db.accessNodeHasLabel(n0, "Student"));
+    assert(!db.accessNodeHasLabel(n0, "Item"));
 
-  assert(db.accessNodeHasLabel(n0, "Person"));
-  assert(db.accessNodeHasLabel(n0, "Student"));
-  assert(!db.accessNodeHasLabel(n0, "Item"));
+    assert(db.accessNodeHasLabel(n2, "Item"));
+    assert(!db.accessNodeHasLabel(n2, "Person"));
 
-  assert(db.accessNodeHasLabel(n2, "Item"));
-  assert(!db.accessNodeHasLabel(n2, "Person"));
+    // ---------------------------------------------------------------------------
+    // All relationship cursor
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // All relationship cursor
-  // ---------------------------------------------------------------------------
+    {
+        auto cursor = db.getRelationshipCursor(); // one open
+        std::vector<k::DRelId> found;
+        k::DRelId rel{0};
+        while (cursor.next(rel)) // increments when producing {0,1,2}
+            found.push_back(rel);
+        assert(found.size() == 3);
+        assert(found[0] == r0);
+        assert(found[1] == r1);
+        assert(found[2] == r2);
+    }
+    assert(metrics.database.allRelationshipCursorOpens == 1);
+    assert(metrics.database.allRelationshipCursorIncrements == 3);
 
-  {
-    auto cursor = db.getRelationshipCursor(); // one open
-    std::vector<k::DRelId> found;
-    k::DRelId rel{0};
-    while (cursor.next(rel)) // increments when producing {0,1,2}
-      found.push_back(rel);
-    assert(found.size() == 3);
-    assert(found[0] == r0);
-    assert(found[1] == r1);
-    assert(found[2] == r2);
-  }
-  assert(metrics.database.allRelationshipCursorOpens == 1);
-  assert(metrics.database.allRelationshipCursorIncrements == 3);
+    // ---------------------------------------------------------------------------
+    // Outgoing adjacency
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Outgoing adjacency
-  // ---------------------------------------------------------------------------
+    {
+        auto cursor = db.accessAdjacentRels(n0, common::Direction::Outgoing);
+        std::vector<k::DRelId> found;
+        k::DRelId rel{0};
+        while (cursor.next(rel))
+            found.push_back(rel);
+        assert(found.size() == 2);
+        std::unordered_set<k::DRelId, IntStrongHash> expected{
+            r0,
+            r2,
+        };
+        assert(expected.contains(found[0]));
+        assert(expected.contains(found[1]));
+    }
 
-  {
-    auto cursor = db.accessAdjacentRels(n0, common::Direction::Outgoing);
-    std::vector<k::DRelId> found;
-    k::DRelId rel{0};
-    while (cursor.next(rel))
-      found.push_back(rel);
-    assert(found.size() == 2);
-    std::unordered_set<k::DRelId, IntStrongHash> expected{
-        r0,
-        r2,
-    };
-    assert(expected.contains(found[0]));
-    assert(expected.contains(found[1]));
-  }
+    // ---------------------------------------------------------------------------
+    // Incoming adjacency
+    // ---------------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------------
-  // Incoming adjacency
-  // ---------------------------------------------------------------------------
+    {
+        auto cursor = db.accessAdjacentRels(n2, common::Direction::Incoming);
+        std::unordered_set<k::DRelId, IntStrongHash> found;
+        k::DRelId rel{0};
+        while (cursor.next(rel))
+            found.insert(rel);
+        assert(found.size() == 2);
+        assert(found.contains(r1));
+        assert(found.contains(r2));
+    }
 
-  {
-    auto cursor = db.accessAdjacentRels(n2, common::Direction::Incoming);
-    std::unordered_set<k::DRelId, IntStrongHash> found;
-    k::DRelId rel{0};
-    while (cursor.next(rel))
-      found.insert(rel);
-    assert(found.size() == 2);
-    assert(found.contains(r1));
-    assert(found.contains(r2));
-  }
-
-  std::cout << "test_raw_kernel passed\n";
+    std::cout << "test_raw_kernel passed\n";
 }
 
 /**
@@ -194,140 +175,128 @@ void test_raw_kernel()
  */
 void test_cached_properties()
 {
-  k::DatabaseMetrics metrics;
-  k::InMemoryDatabase db{metrics};
-  k::DNodeId n0{0};
-  k::DNodeId n1{1};
-  k::DRelId r0{0};
-  db.addNode(
-      k::DNode{
-          .id = n0,
-          .properties = {
-              {"age", 20},
-          },
-          .labels = {
-              "Person",
-          }});
+    k::DatabaseMetrics metrics;
+    k::InMemoryDatabase db{metrics};
+    // k::DNodeId n0{0};
+    // k::DNodeId n1{1};
+    // k::DRelId r0{0};
+    auto n0 = db.addNode(
 
-  db.addNode(
-      k::DNode{
-          .id = n1,
-          .properties = {},
-          .labels = {}});
+        {
+            {"age", 20},
+        },
+        {
+            "Person",
+        });
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r0,
-          .start = n0,
-          .end = n1,
-          .relType = "KNOWS",
-          .properties = {
-              {"weight", 5},
-          }});
+    auto n1 = db.addNode(
+        {},
+        {});
 
-  k::CachedDatabaseAccess cached{db, metrics};
+    auto r0 = db.addRelationship(
+        n0,
+        n1,
+        "KNOWS",
+        {
+            {"weight", 5},
+        });
 
-  // ---------------------------------------------------------------------------
-  // Node property cache
-  // ---------------------------------------------------------------------------
+    k::CachedDatabaseAccess cached{db, metrics};
 
-  assert(cached.nodeProperty(n0, "age") == 20);
-  assert(metrics.nodeAttributeCache.lookups == 1);
-  assert(metrics.nodeAttributeCache.hits == 0);
-  assert(metrics.nodeAttributeCache.misses == 1);
+    // ---------------------------------------------------------------------------
+    // Node property cache
+    // ---------------------------------------------------------------------------
 
-  assert(cached.nodeProperty(n0, "age") == 20);
+    assert(cached.nodeProperty(n0, "age") == 20);
+    assert(metrics.nodeAttributeCache.lookups == 1);
+    assert(metrics.nodeAttributeCache.hits == 0);
+    assert(metrics.nodeAttributeCache.misses == 1);
 
-  assert(metrics.nodeAttributeCache.lookups == 2);
-  assert(metrics.nodeAttributeCache.hits == 1);
-  assert(metrics.nodeAttributeCache.misses == 1);
+    assert(cached.nodeProperty(n0, "age") == 20);
 
-  // Missing values should be cached too.
-  assert(!cached.nodeProperty(n0, "missing").has_value());
+    assert(metrics.nodeAttributeCache.lookups == 2);
+    assert(metrics.nodeAttributeCache.hits == 1);
+    assert(metrics.nodeAttributeCache.misses == 1);
 
-  assert(metrics.nodeAttributeCache.lookups == 3);
-  assert(metrics.nodeAttributeCache.hits == 1);
-  assert(metrics.nodeAttributeCache.misses == 2);
+    // Missing values should be cached too.
+    assert(!cached.nodeProperty(n0, "missing").has_value());
 
-  assert(!cached.nodeProperty(n0, "missing").has_value());
+    assert(metrics.nodeAttributeCache.lookups == 3);
+    assert(metrics.nodeAttributeCache.hits == 1);
+    assert(metrics.nodeAttributeCache.misses == 2);
 
-  assert(metrics.nodeAttributeCache.lookups == 4);
-  assert(metrics.nodeAttributeCache.hits == 2);
-  assert(metrics.nodeAttributeCache.misses == 2);
+    assert(!cached.nodeProperty(n0, "missing").has_value());
 
-  // ---------------------------------------------------------------------------
-  // Relationship property cache
-  // ---------------------------------------------------------------------------
+    assert(metrics.nodeAttributeCache.lookups == 4);
+    assert(metrics.nodeAttributeCache.hits == 2);
+    assert(metrics.nodeAttributeCache.misses == 2);
 
-  assert(cached.relationshipProperty(r0, "weight") == 5);
+    // ---------------------------------------------------------------------------
+    // Relationship property cache
+    // ---------------------------------------------------------------------------
 
-  assert(metrics.relationshipAttributeCache.lookups == 1);
-  assert(metrics.relationshipAttributeCache.hits == 0);
-  assert(metrics.relationshipAttributeCache.misses == 1);
+    assert(cached.relationshipProperty(r0, "weight") == 5);
 
-  assert(cached.relationshipProperty(r0, "weight") == 5);
+    assert(metrics.relationshipAttributeCache.lookups == 1);
+    assert(metrics.relationshipAttributeCache.hits == 0);
+    assert(metrics.relationshipAttributeCache.misses == 1);
 
-  assert(metrics.relationshipAttributeCache.lookups == 2);
-  assert(metrics.relationshipAttributeCache.hits == 1);
-  assert(metrics.relationshipAttributeCache.misses == 1);
+    assert(cached.relationshipProperty(r0, "weight") == 5);
 
-  std::cout << "test_cached_properties passed\n";
+    assert(metrics.relationshipAttributeCache.lookups == 2);
+    assert(metrics.relationshipAttributeCache.hits == 1);
+    assert(metrics.relationshipAttributeCache.misses == 1);
+
+    std::cout << "test_cached_properties passed\n";
 }
 
 /**
  * build datagraph as
  * (n0)-[r0:R]->(n1)
- * 
+ *
  */
 void test_cached_endpoints()
 {
-  k::DatabaseMetrics metrics;
-  k::InMemoryDatabase db{metrics};
+    k::DatabaseMetrics metrics;
+    k::InMemoryDatabase db{metrics};
 
-  k::DNodeId n0{0};
-  k::DNodeId n1{1};
-  k::DRelId r0{0};
+    auto n0 = db.addNode({}, {});
+    auto n1 = db.addNode({}, {});
 
-  db.addNode(k::DNode{.id = n0, .properties={}, .labels={}});
-  db.addNode(k::DNode{.id = n1, .properties={}, .labels={}});
+    auto r0 = db.addRelationship(
+        n0,
+        n1,
+        "R",
+        {});
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r0,
-          .start = n0,
-          .end = n1,
-          .relType = "R",
-          .properties={}
-      });
+    k::CachedDatabaseAccess cached{db, metrics};
 
-  k::CachedDatabaseAccess cached{db, metrics};
+    assert(cached.endpoint(r0, common::Endpoint::Start) == n0);
 
-  assert(cached.endpoint(r0, common::Endpoint::Start) == n0);
+    assert(metrics.relationshipEndpointCache.lookups == 1);
+    assert(metrics.relationshipEndpointCache.hits == 0);
+    assert(metrics.relationshipEndpointCache.misses == 1);
 
-  assert(metrics.relationshipEndpointCache.lookups == 1);
-  assert(metrics.relationshipEndpointCache.hits == 0);
-  assert(metrics.relationshipEndpointCache.misses == 1);
+    assert(cached.endpoint(r0, common::Endpoint::Start) == n0);
 
-  assert(cached.endpoint(r0, common::Endpoint::Start) == n0);
+    assert(metrics.relationshipEndpointCache.lookups == 2);
+    assert(metrics.relationshipEndpointCache.hits == 1);
+    assert(metrics.relationshipEndpointCache.misses == 1);
 
-  assert(metrics.relationshipEndpointCache.lookups == 2);
-  assert(metrics.relationshipEndpointCache.hits == 1);
-  assert(metrics.relationshipEndpointCache.misses == 1);
+    // Start and End are separate cache keys.
+    assert(cached.endpoint(r0, common::Endpoint::End) == n1);
 
-  // Start and End are separate cache keys.
-  assert(cached.endpoint(r0, common::Endpoint::End) == n1);
+    assert(metrics.relationshipEndpointCache.lookups == 3);
+    assert(metrics.relationshipEndpointCache.hits == 1);
+    assert(metrics.relationshipEndpointCache.misses == 2);
 
-  assert(metrics.relationshipEndpointCache.lookups == 3);
-  assert(metrics.relationshipEndpointCache.hits == 1);
-  assert(metrics.relationshipEndpointCache.misses == 2);
+    assert(cached.endpoint(r0, common::Endpoint::End) == n1);
 
-  assert(cached.endpoint(r0, common::Endpoint::End) == n1);
+    assert(metrics.relationshipEndpointCache.lookups == 4);
+    assert(metrics.relationshipEndpointCache.hits == 2);
+    assert(metrics.relationshipEndpointCache.misses == 2);
 
-  assert(metrics.relationshipEndpointCache.lookups == 4);
-  assert(metrics.relationshipEndpointCache.hits == 2);
-  assert(metrics.relationshipEndpointCache.misses == 2);
-
-  std::cout << "test_cached_endpoints passed\n";
+    std::cout << "test_cached_endpoints passed\n";
 }
 
 /**
@@ -336,171 +305,149 @@ void test_cached_endpoints()
  */
 void test_cached_types_and_labels()
 {
-  k::DatabaseMetrics metrics;
-  k::InMemoryDatabase db{metrics};
+    k::DatabaseMetrics metrics;
+    k::InMemoryDatabase db{metrics};
 
-  k::DNodeId n0{0};
-  k::DNodeId n1{1};
-  k::DRelId r0{0};
+    // k::DNodeId n0{0};
+    // k::DNodeId n1{1};
+    // k::DRelId r0{0};
 
-  db.addNode(
-      k::DNode{
-          .id = n0,
-          .properties = {},
-          .labels = {
-              "Person",
-          }});
+    auto n0 = db.addNode(
+        {},
+        {
+            "Person",
+        });
 
-  db.addNode(
-      k::DNode{
-          .id = n1,
-          .properties = {},
-          .labels = {}});
+    auto n1 = db.addNode({}, {});
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r0,
-          .start = n0,
-          .end = n1,
-          .relType = "KNOWS",
-          .properties={}
-      });
+    auto r0 = db.addRelationship(
+        n0,
+        n1,
+        "KNOWS",
+        {});
 
-  k::CachedDatabaseAccess cached{db, metrics};
+    k::CachedDatabaseAccess cached{db, metrics};
 
-  // ---------------------------------------------------------------------------
-  // Relationship type
-  // counted as relationship attribute access.
-  // ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // Relationship type
+    // counted as relationship attribute access.
+    // ---------------------------------------------------------------------------
 
-  assert(cached.relationshipType(r0) == "KNOWS");
+    assert(cached.relationshipType(r0) == "KNOWS");
 
-  assert(metrics.relationshipAttributeCache.lookups == 1);
-  assert(metrics.relationshipAttributeCache.hits == 0);
-  assert(metrics.relationshipAttributeCache.misses == 1);
+    assert(metrics.relationshipAttributeCache.lookups == 1);
+    assert(metrics.relationshipAttributeCache.hits == 0);
+    assert(metrics.relationshipAttributeCache.misses == 1);
 
-  assert(cached.relationshipType(r0) == "KNOWS");
+    assert(cached.relationshipType(r0) == "KNOWS");
 
-  assert(metrics.relationshipAttributeCache.lookups == 2);
-  assert(metrics.relationshipAttributeCache.hits == 1);
-  assert(metrics.relationshipAttributeCache.misses == 1);
+    assert(metrics.relationshipAttributeCache.lookups == 2);
+    assert(metrics.relationshipAttributeCache.hits == 1);
+    assert(metrics.relationshipAttributeCache.misses == 1);
 
-  // ---------------------------------------------------------------------------
-  // Node label
-  // counted as node attribute access.
-  // ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // Node label
+    // counted as node attribute access.
+    // ---------------------------------------------------------------------------
 
-  assert(cached.nodeHasLabel(n0, "Person"));
+    assert(cached.nodeHasLabel(n0, "Person"));
 
-  assert(metrics.nodeAttributeCache.lookups == 1);
-  assert(metrics.nodeAttributeCache.hits == 0);
-  assert(metrics.nodeAttributeCache.misses == 1);
+    assert(metrics.nodeAttributeCache.lookups == 1);
+    assert(metrics.nodeAttributeCache.hits == 0);
+    assert(metrics.nodeAttributeCache.misses == 1);
 
-  assert(cached.nodeHasLabel(n0, "Person"));
+    assert(cached.nodeHasLabel(n0, "Person"));
 
-  assert(metrics.nodeAttributeCache.lookups == 2);
-  assert(metrics.nodeAttributeCache.hits == 1);
-  assert(metrics.nodeAttributeCache.misses == 1);
+    assert(metrics.nodeAttributeCache.lookups == 2);
+    assert(metrics.nodeAttributeCache.hits == 1);
+    assert(metrics.nodeAttributeCache.misses == 1);
 
-  // Negative label lookup should also be cached.
-  assert(!cached.nodeHasLabel(n0, "Student"));
+    // Negative label lookup should also be cached.
+    assert(!cached.nodeHasLabel(n0, "Student"));
 
-  assert(metrics.nodeAttributeCache.lookups == 3);
-  assert(metrics.nodeAttributeCache.hits == 1);
-  assert(metrics.nodeAttributeCache.misses == 2);
+    assert(metrics.nodeAttributeCache.lookups == 3);
+    assert(metrics.nodeAttributeCache.hits == 1);
+    assert(metrics.nodeAttributeCache.misses == 2);
 
-  assert(!cached.nodeHasLabel(n0, "Student"));
+    assert(!cached.nodeHasLabel(n0, "Student"));
 
-  assert(metrics.nodeAttributeCache.lookups == 4);
-  assert(metrics.nodeAttributeCache.hits == 2);
-  assert(metrics.nodeAttributeCache.misses == 2);
+    assert(metrics.nodeAttributeCache.lookups == 4);
+    assert(metrics.nodeAttributeCache.hits == 2);
+    assert(metrics.nodeAttributeCache.misses == 2);
 
-  std::cout << "test_cached_types_and_labels passed\n";
+    std::cout << "test_cached_types_and_labels passed\n";
 }
 
 void test_cached_cursors()
 {
-  k::DatabaseMetrics metrics;
-  k::InMemoryDatabase db{metrics};
+    k::DatabaseMetrics metrics;
+    k::InMemoryDatabase db{metrics};
 
-  k::DNodeId n0{0};
-  k::DNodeId n1{1};
-  k::DNodeId n2{2};
+    auto n0 = db.addNode({}, {});
+    auto n1 = db.addNode({}, {});
+    auto n2 = db.addNode({}, {});
 
-  k::DRelId r0{0};
-  k::DRelId r1{1};
+    auto r0 = db.addRelationship(
+        n0,
+        n1,
+        "A",
+        {});
 
-  db.addNode(k::DNode{.id = n0, .properties={}, .labels={}});
-  db.addNode(k::DNode{.id = n1, .properties={}, .labels={}});
-  db.addNode(k::DNode{.id = n2, .properties={}, .labels={}});
+    auto r1 = db.addRelationship(
+        n0,
+        n2,
+        "B",
+        {});
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r0,
-          .start = n0,
-          .end = n1,
-          .relType = "A",
-          .properties={}
-    });
+    k::CachedDatabaseAccess cached{db, metrics};
 
-  db.addRelationship(
-      k::DRelationship{
-          .id = r1,
-          .start = n0,
-          .end = n2,
-          .relType = "B",
-          .properties={}
-  });
+    // CachedDatabaseAccess should not cache cursors themselves.
+    // It should just delegate traversal while preserving cursor metrics.
+    {
+        auto cursor = cached.getRelationshipCursor();
 
-  k::CachedDatabaseAccess cached{db, metrics};
+        k::DRelId rel{0};
+        size_t count = 0;
 
-  // CachedDatabaseAccess should not cache cursors themselves.
-  // It should just delegate traversal while preserving cursor metrics.
-  {
-    auto cursor = cached.getRelationshipCursor();
+        while (cursor.next(rel))
+            ++count;
 
-    k::DRelId rel{0};
-    size_t count = 0;
+        assert(count == 2);
+    }
 
-    while (cursor.next(rel))
-      ++count;
+    assert(metrics.database.allRelationshipCursorOpens == 1);
 
-    assert(count == 2);
-  }
+    {
+        auto cursor = cached.adjacent(n0, common::Direction::Outgoing);
 
-  assert(metrics.database.allRelationshipCursorOpens == 1);
+        std::unordered_set<k::DRelId, IntStrongHash> found;
 
-  {
-    auto cursor = cached.adjacent(n0, common::Direction::Outgoing);
+        k::DRelId rel{0};
 
-    std::unordered_set<k::DRelId, IntStrongHash> found;
+        while (cursor.next(rel))
+            found.insert(rel);
 
-    k::DRelId rel{0};
+        assert(found.size() == 2);
+        assert(found.contains(r0));
+        assert(found.contains(r1));
+    }
 
-    while (cursor.next(rel))
-      found.insert(rel);
+    assert(metrics.database.adjacencyCursorOpens == 1);
 
-    assert(found.size() == 2);
-    assert(found.contains(r0));
-    assert(found.contains(r1));
-  }
-
-  assert(metrics.database.adjacencyCursorOpens == 1);
-
-  std::cout << "test_cached_cursors passed\n";
+    std::cout << "test_cached_cursors passed\n";
 }
 
 void test_simple()
 {
-  test_raw_kernel();
-  test_cached_properties();
-  test_cached_endpoints();
-  test_cached_types_and_labels();
-  test_cached_cursors();
-  std::cout << "all kernel tests passed\n";
+    test_raw_kernel();
+    test_cached_properties();
+    test_cached_endpoints();
+    test_cached_types_and_labels();
+    test_cached_cursors();
+    std::cout << "all kernel tests passed\n";
 }
 
 int main()
 {
-  test_simple();
+    test_simple();
 }

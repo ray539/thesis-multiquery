@@ -7,10 +7,12 @@ target_include_directories(common
     ${PROJECT_SOURCE_DIR}/include
 )
 
+
 # ---------------------- kernel -------------------------------
 add_library(kernel
   kernel/CachedDatabaseAccess.cpp
   kernel/InMemoryDatabase.cpp
+  kernel/Printer.cpp
 )
 target_include_directories(kernel
   PUBLIC
@@ -68,6 +70,7 @@ add_library(execution
   execution/with_shared_blocks/DFSHelper.cpp
   execution/with_shared_blocks/Eval.cpp
   execution/with_shared_blocks/SharedBlock.cpp
+  execution/EagerExecutor.cpp
   execution/PredicateEvaluator.cpp
   execution/CandidateSpace.cpp
 )
@@ -114,3 +117,20 @@ target_link_libraries(main
     execution
 )
 
+# --------------------- evaluation apps
+add_executable(evaluation
+  evaluation/Main.cpp
+  evaluation/DataGraphGen.cpp
+)
+
+target_include_directories(evaluation
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(evaluation
+  PRIVATE
+    kernel
+    execution
+    query_graph
+)

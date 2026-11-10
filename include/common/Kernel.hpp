@@ -82,13 +82,21 @@ namespace kernel
   public:
     explicit InMemoryDatabase(
         DatabaseMetrics &metrics)
-        : metrics_{metrics}
+        : metrics_{metrics},
+        next_node_id_{0},
+        next_rel_id_{0}
     {
     }
 
-    void addNode(DNode node);
+    /**
+     * add new data node and return its ID
+     */
+    DNodeId addNode(std::unordered_map<std::string, int64_t> properties, std::unordered_set<std::string> labels);
 
-    void addRelationship(DRelationship rel);
+    /**
+     * add new data relationship and return its ID
+     */
+    DRelId addRelationship(DNodeId start, DNodeId end, std::string relType, std::unordered_map<std::string, int64_t> properties);
 
     // cursor to relationships
     RelationshipCursor getRelationshipCursor();
@@ -108,6 +116,11 @@ namespace kernel
     bool accessNodeHasLabel(DNodeId node, const std::string &label) const;
 
   private:
+    friend std::string to_string(const InMemoryDatabase &db);
+
+    int64_t next_node_id_;
+    int64_t next_rel_id_;
+
     DatabaseMetrics &metrics_;
 
     std::unordered_map<DNodeId, DNode, IntStrongHash> nodes_;
@@ -180,6 +193,7 @@ struct std::hash<kernel::DRelEndpointKey>
 
 namespace kernel
 {
+
   /**
    * cached layer with metrics tracking, over InMemoryDatabase operations
    */
@@ -236,6 +250,8 @@ namespace kernel
     }
 
   private:
+    friend std::string to_string(const CachedDatabaseAccess &db);
+
     InMemoryDatabase &db_;
     DatabaseMetrics &metrics_;
 
@@ -270,4 +286,20 @@ namespace kernel
         bool>
         nodeLabelCache_;
   };
+
+  // ---------------------------------- PRINTER FUNCTIONS
+  std::string to_string(const DNode &node);
+  std::string to_string(const DRelationship &rel);
+
+  std::string to_string(const CacheMetrics &metrics);
+  std::string to_string(const CursorMetrics &metrics);
+  std::string to_string(const DatabaseMetrics &metrics);
+
+  std::string to_string(const DNodePropertyKey &key);
+  std::string to_string(const DRelPropertyKey &key);
+  std::string to_string(const DRelEndpointKey &key);
+
+  std::string to_string(const InMemoryDatabase &db);
+  std::string to_string(const CachedDatabaseAccess &db);
+
 }

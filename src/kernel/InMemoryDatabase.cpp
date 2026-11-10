@@ -13,20 +13,35 @@ namespace kernel
     return true;
   }
 
-  void InMemoryDatabase::addNode(DNode node)
+  DNodeId InMemoryDatabase::addNode(std::unordered_map<std::string, int64_t> properties, std::unordered_set<std::string> labels)
   {
-    nodes_.emplace(node.id, std::move(node));
+    DNode new_node {
+      .id=DNodeId(next_node_id_),
+      .properties=properties,
+      .labels=labels
+    };
+    nodes_.emplace(new_node.id, std::move(new_node));
+    next_node_id_++;
+    return new_node.id;
   }
 
-  void InMemoryDatabase::addRelationship(DRelationship rel)
+  DRelId InMemoryDatabase::addRelationship(DNodeId start, DNodeId end, std::string relType, std::unordered_map<std::string, int64_t> properties)
   {
-    DRelId id = rel.id;
+    DRelationship new_rel {
+      .id=DRelId(next_rel_id_),
+      .start=start,
+      .end=end,
+      .relType=relType,
+      .properties=properties
+    };
 
-    outgoing_[rel.start].push_back(id);
-    incoming_[rel.end].push_back(id);
+    outgoing_[new_rel.start].push_back(new_rel.id);
+    incoming_[new_rel.end].push_back(new_rel.id);
 
-    allRelationships_.push_back(id);
-    relationships_.emplace(id, std::move(rel));
+    allRelationships_.push_back(new_rel.id);
+    relationships_.emplace(new_rel.id, std::move(new_rel));
+    next_rel_id_++;
+    return new_rel.id;
   }
 
   RelationshipCursor InMemoryDatabase::getRelationshipCursor()

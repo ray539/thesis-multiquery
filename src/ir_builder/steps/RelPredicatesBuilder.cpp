@@ -268,6 +268,7 @@ namespace ir_builder
         }
       }
 
+      // flatten AND and collect all predicates written either inline or globally
       for (qg::ExprId predId : collectPredicatesFromQg(qg))
       {
         std::vector<qg::ExprId> atoms;
@@ -277,6 +278,8 @@ namespace ir_builder
           processAtomicPredicate(qi, qg, ge, atom);
         }
       }
+
+      // get node degree predicates
     }
   }
 }
