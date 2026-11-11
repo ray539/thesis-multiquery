@@ -73,6 +73,7 @@ add_library(execution
   execution/EagerExecutor.cpp
   execution/PredicateEvaluator.cpp
   execution/CandidateSpace.cpp
+  execution/Printer.cpp
 )
 
 target_include_directories(execution
@@ -117,10 +118,11 @@ target_link_libraries(main
     execution
 )
 
-# --------------------- evaluation apps
+# --------------------- evaluation executable
 add_executable(evaluation
   evaluation/Main.cpp
   evaluation/DataGraphGen.cpp
+  evaluation/QueryGraphGen.cpp
 )
 
 target_include_directories(evaluation
@@ -131,6 +133,7 @@ target_include_directories(evaluation
 target_link_libraries(evaluation
   PRIVATE
     kernel
-    execution
     query_graph
+    ir_builder
+    execution
 )

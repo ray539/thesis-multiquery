@@ -18,7 +18,9 @@ namespace execution
                 predicateEvaluator_}
                 .build(options_.signatureLevel)}
   {
-
+    std::cout << "EagerExecutor::constructor" << std::endl;
+    std::cout << "Candidate space: " << std::endl;
+    std::cout << to_string(candidateSpace_) << std::endl;
   }
 
   // ---------------------------------------------------------------------------
@@ -83,6 +85,15 @@ namespace execution
     ++metrics_.recursiveCallsAtDepth[depth];
 
     std::optional<ib::EIdxCollapsed> qnode_ = chooseNextNode(queryIndex, edgeGraph, alreadyBound);
+
+    // std::cout << "backtrack call" << std::endl;
+    // std::cout << "  already bound: ";
+    // for (auto& x : alreadyBound) {
+    //   std::cout << ir_builder::to_string(x) << " ";
+    // }
+    // std::cout << std::endl;
+    // std::cout << "  next node chosen: " << (qnode_.has_value() ? ir_builder::to_string(*qnode_) : "") << std::endl;
+
 
     if (!qnode_)
     {
@@ -308,9 +319,13 @@ namespace execution
     if (best)
       return ib::EIdxCollapsed{*best};
 
-    // we assumed one connected component
-    throw std::logic_error(
+    // we assumed one connected component, so if the frontier is empty it can
+    // only mean that the graph is fully matched
+    if (alreadyBound.size() != edgeGraph.num_nodes()) {
+      throw std::logic_error(
         "EagerExecutor: frontier empty before query graph was fully matched");
+    }
+    return std::nullopt; // ok, matching ends here because we are done
   }
 
   // ---------------------------------------------------------------------------
@@ -394,8 +409,11 @@ namespace execution
     if (best)
       return ib::EIdxCollapsed{*best};
 
-    throw std::logic_error(
-        "couldn't find next node: edge graph is disconnected");
+    if (alreadyBound.size() != edgeGraph.num_nodes()) {
+      throw std::logic_error(
+        "EagerExecutor: frontier empty before query graph was fully matched");
+    }
+    return std::nullopt;
   }
 
   // ---------------------------------------------------------------------------

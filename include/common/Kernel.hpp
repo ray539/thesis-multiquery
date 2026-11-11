@@ -82,9 +82,10 @@ namespace kernel
   public:
     explicit InMemoryDatabase(
         DatabaseMetrics &metrics)
-        : metrics_{metrics},
-        next_node_id_{0},
-        next_rel_id_{0}
+        : next_node_id_{0},
+          next_rel_id_{0},
+          metrics_{metrics}
+
     {
     }
 

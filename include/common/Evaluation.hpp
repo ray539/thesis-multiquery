@@ -3,10 +3,12 @@
 #include <bits/stdc++.h>
 
 #include <common/Kernel.hpp>
+#include <common/QueryGraph.hpp>
 
 namespace evaluation
 {
   namespace k = kernel;
+  namespace qg = query_graph;
 
   struct DataGraphGenConfig
   {
@@ -57,7 +59,6 @@ namespace evaluation
         k::InMemoryDatabase &db,
         const std::vector<k::DNodeId> &nodes);
 
-
     /**
      * create outgoing relationship for given `sourceIndex`
      */
@@ -87,5 +88,98 @@ namespace evaluation
    * - deterministic seed
    */
   void populateDataGraph(k::InMemoryDatabase &db);
+
+  // ---------------------- QUERY GRAPH SAMPLER -----------------
+  struct QueryGraphSamplerConfig
+  {
+    size_t relationshipCount = 10;
+    size_t maxAttempts = 100;
+    uint64_t seed = 1;
+  };
+
+  class QueryGraphSampler
+  {
+  public:
+    QueryGraphSampler(
+        k::InMemoryDatabase &db,
+        QueryGraphSamplerConfig config = {});
+
+    /**
+     * Sample one connected query graph.
+     *
+     * The query contains exactly config.relationshipCount relationships.
+     * Relationship type is the only predicate copied from the data graph.
+     */
+    query_graph::QueryGraph sample();
+
+    /**
+     * Sample several query graphs using the same RNG stream.
+     */
+    std::vector<query_graph::QueryGraph> sample(size_t count);
+
+  private:
+    k::InMemoryDatabase &db_;
+    QueryGraphSamplerConfig config_;
+    std::mt19937_64 rng_;
+
+    std::vector<k::DRelId> allRelationships_;
+
+    void validateConfig() const;
+
+    /**
+     * load all relationships into the sampler class
+     */
+    void loadRelationships();
+
+    /**
+     * get a random relationship
+     */
+    k::DRelId randomRelationship();
+
+    /**
+     * Sample a connected set of data relationships.
+     *
+     * Returns nullopt if the connected component reached from the randomly
+     * selected starting relationship is too small.
+     */
+    std::optional<std::vector<k::DRelId>> sampleRelationships();
+
+    /**
+     * Add to frontier every relationship which shares some endpoint node with `drel`,
+     * and is not in `frontier`
+     */
+    void addAdjacentRelationships(
+        k::DRelId drel,
+        const std::unordered_set<k::DRelId, IntStrongHash> &selected,
+        std::vector<k::DRelId> &frontier,
+        std::unordered_set<k::DRelId, IntStrongHash> &frontierMembership);
+
+    /**
+     * modifies: `frontier`
+     * add all relationships adjacent to `node` which is NOT
+     * already in selected to `frontier`
+     * 
+     */
+    void addNodeAdjacency(
+        k::DNodeId node,
+        const std::unordered_set<k::DRelId, IntStrongHash> &selected,
+        std::vector<k::DRelId> &frontier,
+        std::unordered_set<k::DRelId, IntStrongHash> &frontierMembership);
+
+    /**
+     * Remove and return a uniformly random relationship from frontier.
+     */
+    k::DRelId popRandomFrontier(
+        std::vector<k::DRelId> &frontier,
+        std::unordered_set<k::DRelId, IntStrongHash> &frontierMembership);
+
+    /**
+     * Convert sampled data relationships into a QueryGraph while preserving
+     * shared data-node endpoints.
+     */
+    query_graph::QueryGraph buildQueryGraph(const std::vector<k::DRelId> &relationships);
+  };
+
+  std::vector<qg::QueryGraph> getQueryGraphsFrom(k::InMemoryDatabase& db, QueryGraphSamplerConfig config, size_t count);
 
 } // namespace evaluation

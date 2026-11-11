@@ -12,6 +12,16 @@ namespace execution
   namespace qg = query_graph;
   namespace k = kernel;
 
+  /**
+   * for printer classes, truncates debugging output
+   */
+  struct ExecutionPrintOptions
+  {
+    size_t maxListItems = 20;
+    size_t maxMapEntries = 20;
+    size_t maxEmbeddings = 10;
+  };
+
   enum class NeighborhoodCondition
   {
     Existence,
@@ -531,6 +541,9 @@ namespace execution
 
   private:
     friend class CandidateSpaceBuilder;
+    friend std::string to_string(
+        const CandidateSpace &space,
+        const ExecutionPrintOptions &options);
 
     /**
      * candidate set nodes
@@ -675,8 +688,7 @@ namespace execution
   {
     size_t signatureLevel = 3;
 
-    EagerOrderingStrategy ordering =
-        EagerOrderingStrategy::ConnectedGreedy;
+    EagerOrderingStrategy ordering = EagerOrderingStrategy::ConnectedGreedy;
   };
 
   struct EagerExecutionMetrics
@@ -941,5 +953,38 @@ namespace execution
         const ib::SharedBlockReference &reference,
         const Embedding &embedding) const;
   };
+
+  // ----------------------------------- PRINTER CLASSES ------------------------
+  std::string to_string(NeighborhoodCondition condition);
+  std::string to_string(const PredicateEvaluatorConfig &config);
+
+  std::string to_string(const Embedding &embedding);
+  std::string to_string(const SharedBlockRow &row);
+  std::string to_string(const SharedBlockCacheKey &key);
+
+  std::string to_string(const SharedBlockExecutionMetrics &metrics);
+  std::string to_string(const QueryExecutionMetrics &metrics);
+
+  std::string to_string(const QueryExecutionResult &result, const ExecutionPrintOptions &options = {});
+
+  std::string to_string(const dfs_helper::BoundConstraint &constraint);
+
+  std::string to_string(const CandidateSet &candidateSet, const ExecutionPrintOptions &options = {});
+
+  std::string to_string(const CandidateAdjacencyKey &key);
+
+  std::string to_string(
+      const CandidateAdjacency &adjacency,
+      const ExecutionPrintOptions &options = {});
+
+  std::string to_string(const QueryCandidateSpace &space);
+
+  std::string to_string(
+      const CandidateSpace &space,
+      const ExecutionPrintOptions &options = {});
+
+  std::string to_string(EagerOrderingStrategy strategy);
+  std::string to_string(const EagerExecutorOptions &options);
+  std::string to_string(const EagerExecutionMetrics &metrics);
 
 } // namespace execution
