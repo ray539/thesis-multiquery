@@ -18,6 +18,7 @@ namespace execution
       return it->second;
     }
     ++metrics_.predicateCache.misses;
+
     bool result = evaluateUncached(predicate, drel);
     cache_.emplace(key, result);
     return result;

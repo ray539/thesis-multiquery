@@ -73,9 +73,10 @@ namespace kernel
 
   size_t InMemoryDatabase::nodeDegree(DNodeId node, common::Direction direction) {
     if (direction == common::Direction::Outgoing) {
-      return outgoing_.at(node).size();
+      // we use [] because if the node is lone, we still want to create the empty list
+      return outgoing_[node].size();
     }
-    return incoming_.at(node).size();
+    return incoming_[node].size();
   }
 
   std::optional<int64_t> InMemoryDatabase::accessNodeProperty(

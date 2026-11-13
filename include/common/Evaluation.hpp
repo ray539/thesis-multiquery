@@ -10,7 +10,7 @@ namespace evaluation
   namespace k = kernel;
   namespace qg = query_graph;
 
-  struct DataGraphGenConfig
+  struct DataGraphFixedDegreeGenConfig
   {
     size_t nodeCount = 100'000;
     size_t outgoingDegree = 4;
@@ -25,10 +25,10 @@ namespace evaluation
     uint64_t seed = 1;
   };
 
-  class RandomDataGraphGenerator
+  class RandomDataGraphGeneratorFixedDegree
   {
   public:
-    explicit RandomDataGraphGenerator(DataGraphGenConfig config);
+    explicit RandomDataGraphGeneratorFixedDegree(DataGraphFixedDegreeGenConfig config);
 
     /**
      * populate the database with the given config options
@@ -36,7 +36,7 @@ namespace evaluation
     void populate(k::InMemoryDatabase &db);
 
   private:
-    DataGraphGenConfig config_;
+    DataGraphFixedDegreeGenConfig config_;
     std::mt19937_64 rng_;
 
     void validateConfig() const;
@@ -71,9 +71,9 @@ namespace evaluation
   /**
    * Generate a data graph with a custom configuration.
    */
-  void populateDataGraph(
+  void populateDataGraphFixedDegree(
       k::InMemoryDatabase &db,
-      DataGraphGenConfig config);
+      DataGraphFixedDegreeGenConfig config);
 
   /**
    * Generate the baseline data graph used by the evaluation.
@@ -87,7 +87,157 @@ namespace evaluation
    * - no duplicate (start, end, type) relationships
    * - deterministic seed
    */
-  void populateDataGraph(k::InMemoryDatabase &db);
+  void populateDataGraphFixedDegree(k::InMemoryDatabase &db);
+
+  // -------------------- CHAOTIC GRAPH GENERATOR
+  struct ChaoticDataGraphGenConfig
+  {
+    size_t nodeCount = 100'000;
+    size_t relationshipCount = 400'000;
+
+    std::vector<std::string> relationshipTypes{
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+    };
+
+    uint64_t seed = 1;
+  };
+
+  class ChaoticDataGraphGenerator
+  {
+  public:
+    explicit ChaoticDataGraphGenerator(
+        ChaoticDataGraphGenConfig config);
+
+    void populate(k::InMemoryDatabase &db);
+
+  private:
+    ChaoticDataGraphGenConfig config_;
+    std::mt19937_64 rng_;
+
+    void validateConfig() const;
+
+    std::vector<k::DNodeId> createNodes(
+        k::InMemoryDatabase &db);
+
+    size_t randomNodeIndex();
+
+    size_t randomRelationshipTypeIndex();
+
+    void createRelationships(
+        k::InMemoryDatabase &db,
+        const std::vector<k::DNodeId> &nodes);
+  };
+
+  void populateChaoticDataGraph(
+      k::InMemoryDatabase &db,
+      ChaoticDataGraphGenConfig config);
+
+  // -------------------------- planted motif generator
+  namespace k = kernel;
+  namespace qg = query_graph;
+
+  struct PlantedMotifGenConfig
+  {
+    size_t nodeCount = 100'000;
+
+    // Number of A relationships initially admitted by the base predicate.
+    size_t centralCandidateCount = 10'000;
+
+    // Nested survivor populations.
+    size_t level1Count = 1'000;
+    size_t level2Count = 100;
+    size_t level3Count = 10;
+
+    // Makes the endpoints of central A relationships high-degree.
+    size_t noiseOutgoingPerEndpoint = 32;
+
+    // Additional unrelated graph noise.
+    size_t backgroundNoiseRelationshipCount = 100'000;
+
+    /**
+     * The first eight types are interpreted as:
+     *
+     *   0: A
+     *   1: B
+     *   2: C
+     *   3: D
+     *   4: E
+     *   5: F
+     *   6: G
+     *   7: H
+     *
+     * The final type is reserved for noise.
+     */
+    std::vector<std::string> relationshipTypes{
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "NOISE",
+    };
+
+    size_t queryCount = 50;
+
+    uint64_t seed = 1;
+  };
+
+  struct PlantedMotifGenResult
+  {
+    // All A relationships created as potential central candidates.
+    std::vector<k::DRelId> centralRelationships;
+
+    // Central A relationships that have the complete level-3 motif.
+    std::vector<k::DRelId> fullMotifCenters;
+
+    // Identical structural queries, intentionally maximising signature reuse.
+    std::vector<qg::QueryGraph> queryGraphs;
+  };
+
+  class PlantedMotifGenerator
+  {
+  public:
+    explicit PlantedMotifGenerator(PlantedMotifGenConfig config);
+
+    PlantedMotifGenResult populate(k::InMemoryDatabase &db);
+
+  private:
+    PlantedMotifGenConfig config_;
+    std::mt19937_64 rng_;
+
+    std::vector<k::DNodeId> nodes_;
+    size_t nextUnusedNode_ = 0;
+
+    void validateConfig() const;
+
+    void createNodes(k::InMemoryDatabase &db);
+
+    k::DNodeId allocateNode();
+
+    k::DNodeId randomNode();
+
+    k::DNodeId randomNodeOtherThan(k::DNodeId node);
+
+    void addNoise(
+        k::InMemoryDatabase &db,
+        k::DNodeId node);
+
+    void addBackgroundNoise(
+        k::InMemoryDatabase &db);
+
+    qg::QueryGraph buildQueryGraph() const;
+  };
+
+  PlantedMotifGenResult populatePlantedMotifGraph(
+      k::InMemoryDatabase &db,
+      PlantedMotifGenConfig config = {});
 
   // ---------------------- QUERY GRAPH SAMPLER -----------------
   struct QueryGraphSamplerConfig
@@ -158,7 +308,7 @@ namespace evaluation
      * modifies: `frontier`
      * add all relationships adjacent to `node` which is NOT
      * already in selected to `frontier`
-     * 
+     *
      */
     void addNodeAdjacency(
         k::DNodeId node,
@@ -180,6 +330,51 @@ namespace evaluation
     query_graph::QueryGraph buildQueryGraph(const std::vector<k::DRelId> &relationships);
   };
 
-  std::vector<qg::QueryGraph> getQueryGraphsFrom(k::InMemoryDatabase& db, QueryGraphSamplerConfig config, size_t count);
+  std::vector<qg::QueryGraph> getQueryGraphsFrom(k::InMemoryDatabase &db, QueryGraphSamplerConfig config, size_t count);
+
+
+  struct SharedBlockStressConfig
+  {
+    size_t centralCount = 10;
+
+    // Number of loops attached to each center.
+    size_t blockCount = 4;
+
+    // Number of distinct internal embeddings for each
+    // (block, boundary relationship).
+    size_t embeddingsPerBlock = 20;
+
+    // Extra homogeneous R relationships around structural nodes.
+    size_t noiseDegree = 20;
+
+    uint64_t seed = 1;
+  };
+
+  struct SharedBlockStressResult
+  {
+    /**
+     * queryGraphs[0]:
+     *   identical query with no shared blocks marked.
+     *
+     * queryGraphs[1]:
+     *   same query, with each loop marked as a shared block.
+     */
+    std::vector<qg::QueryGraph> queryGraphs;
+
+    /**
+     * One central data node for each planted instance family.
+     */
+    std::vector<k::DNodeId> centralNodes;
+
+    /**
+     * boundaryRelationships[c][b]
+     *
+     * Boundary relationship for block b around central node c.
+     */
+    std::vector<std::vector<k::DRelId>> boundaryRelationships;
+  };
+
+  qg::QueryGraph buildQG(bool sharedBlocks);
+  SharedBlockStressResult populateSharedBlockStressGraph(k::InMemoryDatabase &db, SharedBlockStressConfig config = {});
 
 } // namespace evaluation

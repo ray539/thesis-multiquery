@@ -6,7 +6,9 @@ namespace execution
       const ib::BuildResult &buildResult,
       k::CachedDatabaseAccess &database,
       PredicateEvaluator &predicateEvaluator,
-      EagerExecutorOptions options)
+      EagerExecutorOptions options,
+      size_t limit
+    )
       : buildResult_{buildResult},
         database_{database},
         predicateEvaluator_{predicateEvaluator},
@@ -16,7 +18,8 @@ namespace execution
                 buildResult_,
                 database_,
                 predicateEvaluator_}
-                .build(options_.signatureLevel)}
+                .build(options_.signatureLevel)},
+        limit_{limit}
   {
     std::cout << "EagerExecutor::constructor" << std::endl;
     std::cout << "Candidate space: " << std::endl;
@@ -54,6 +57,7 @@ namespace execution
 
     std::vector<Embedding> output;
 
+    last_time_ = std::chrono::steady_clock::now();
     backtrack(
         queryIndex,
         edgeGraph,
@@ -77,6 +81,10 @@ namespace execution
       std::unordered_set<ib::EIdxCollapsed, IntStrongHash> &alreadyBound,
       std::vector<Embedding> &output)
   {
+    if (metrics_.completeMatches >= limit_) {
+      return;
+    }
+
     size_t depth = alreadyBound.size();
 
     if (metrics_.recursiveCallsAtDepth.size() <= depth)
@@ -94,11 +102,21 @@ namespace execution
     // std::cout << std::endl;
     // std::cout << "  next node chosen: " << (qnode_.has_value() ? ir_builder::to_string(*qnode_) : "") << std::endl;
 
-
     if (!qnode_)
     {
       ++metrics_.completeMatches;
       output.push_back(embedding);
+      auto t = std::chrono::steady_clock::now();
+      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t - last_time_).count();
+      if (elapsed >= 60000) {
+        std::cout << "elapsed since last: " << elapsed << " ms" << std::endl;
+        std::cout << "complete matches: " << metrics_.completeMatches << std::endl;
+        last_time_ = std::chrono::steady_clock::now();
+      }
+      if (metrics_.completeMatches >= limit_) {
+        std::cout << "stopping due to limit" << std::endl;
+        return;
+      }
       return;
     }
     ib::EIdxCollapsed qnode = *qnode_;

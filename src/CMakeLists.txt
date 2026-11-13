@@ -123,6 +123,9 @@ add_executable(evaluation
   evaluation/Main.cpp
   evaluation/DataGraphGen.cpp
   evaluation/QueryGraphGen.cpp
+  evaluation/ChaoticDataGraphGenerator.cpp
+  evaluation/PlantedMotifGenerator.cpp
+  evaluation/SharedBlockGenerator.cpp
 )
 
 target_include_directories(evaluation

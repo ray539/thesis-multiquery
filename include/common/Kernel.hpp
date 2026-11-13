@@ -50,6 +50,17 @@ namespace kernel
     CacheMetrics nodeAttributeCache;
     CacheMetrics relationshipEndpointCache;
     CacheMetrics predicateCache;
+
+    /**
+     * reset all metrics to zero
+     */
+    void reset() {
+      database = {};
+      relationshipAttributeCache = {};
+      nodeAttributeCache = {};
+      relationshipEndpointCache = {};
+      predicateCache = {};
+    }
   };
 
   /**

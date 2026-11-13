@@ -17,8 +17,8 @@ namespace ir_builder
   {
     // 1. Build full, uncollapsed relationship edge graph.
     auto raw_edge_graph = egh::buildRawEdgeGraph(queryGraph, ge.queryLocalToGlobals.at(qi), ge.relationships);
-    std::cout<<"raw edge graph: "<<std::endl;
-    std::cout<<to_string(raw_edge_graph)<<std::endl;
+    // std::cout<<"raw edge graph: "<<std::endl;
+    // std::cout<<to_string(raw_edge_graph)<<std::endl;
 
 
     // 2. Resolve and validate shared-block occurrences.
@@ -33,14 +33,14 @@ namespace ir_builder
         shape_of,
         signatures);
 
-    std::cout<<"block_occurrences: "<<std::endl;
-    for (auto& bo: block_occurrences) {
-        std::cout<<to_string(bo)<<std::endl;
-    }
-    std::cout<<"classification of node: "<<std::endl;
-    for (auto& [k, v] : classification_of_node) {
-        std::cout<<to_string(k)<<": "<<to_string(v)<<std::endl;
-    }
+    // std::cout<<"block_occurrences: "<<std::endl;
+    // for (auto& bo: block_occurrences) {
+    //     std::cout<<to_string(bo)<<std::endl;
+    // }
+    // std::cout<<"classification of node: "<<std::endl;
+    // for (auto& [k, v] : classification_of_node) {
+    //     std::cout<<to_string(k)<<": "<<to_string(v)<<std::endl;
+    // }
 
     // 3. Collapse each shared block occurrence into one outer EdgeGraph node.
     return egh::buildCollapsedGraph(raw_edge_graph, block_occurrences, classification_of_node);

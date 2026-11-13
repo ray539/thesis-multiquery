@@ -26,3 +26,19 @@ target_link_libraries(kernel_test
     query_graph
     kernel
 )
+
+# --------------------- shared_block_test
+add_executable(shared_block_test
+  shared_block_test/main.cpp
+)
+
+target_include_directories(shared_block_test
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(shared_block_test
+  PRIVATE
+    query_graph
+    kernel
+    execution
+)

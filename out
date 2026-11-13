@@ -1,353 +1,131 @@
-kernel state: 
-InMemoryDatabase {
-  nodes (10):
-    dn0 {
-      labels: []
-      properties: {}
-    }
-    dn1 {
-      labels: []
-      properties: {}
-    }
-    dn2 {
-      labels: []
-      properties: {}
-    }
-    dn3 {
-      labels: []
-      properties: {}
-    }
-    dn4 {
-      labels: []
-      properties: {}
-    }
-    dn5 {
-      labels: []
-      properties: {}
-    }
-    dn6 {
-      labels: []
-      properties: {}
-    }
-    dn7 {
-      labels: []
-      properties: {}
-    }
-    dn8 {
-      labels: []
-      properties: {}
-    }
-    dn9 {
-      labels: []
-      properties: {}
-    }
-  relationships (40):
-    dr0 {
-      dn0 -[:A]-> dn1
-      properties: {}
-    }
-    dr1 {
-      dn0 -[:A]-> dn4
-      properties: {}
-    }
-    dr2 {
-      dn0 -[:D]-> dn3
-      properties: {}
-    }
-    dr3 {
-      dn0 -[:C]-> dn5
-      properties: {}
-    }
-    dr4 {
-      dn1 -[:C]-> dn0
-      properties: {}
-    }
-    dr5 {
-      dn1 -[:A]-> dn7
-      properties: {}
-    }
-    dr6 {
-      dn1 -[:A]-> dn4
-      properties: {}
-    }
-    dr7 {
-      dn1 -[:D]-> dn2
-      properties: {}
-    }
-    dr8 {
-      dn2 -[:B]-> dn4
-      properties: {}
-    }
-    dr9 {
-      dn2 -[:B]-> dn7
-      properties: {}
-    }
-    dr10 {
-      dn2 -[:B]-> dn3
-      properties: {}
-    }
-    dr11 {
-      dn2 -[:A]-> dn1
-      properties: {}
-    }
-    dr12 {
-      dn3 -[:C]-> dn0
-      properties: {}
-    }
-    dr13 {
-      dn3 -[:D]-> dn6
-      properties: {}
-    }
-    dr14 {
-      dn3 -[:B]-> dn5
-      properties: {}
-    }
-    dr15 {
-      dn3 -[:C]-> dn1
-      properties: {}
-    }
-    dr16 {
-      dn4 -[:B]-> dn8
-      properties: {}
-    }
-    dr17 {
-      dn4 -[:B]-> dn0
-      properties: {}
-    }
-    dr18 {
-      dn4 -[:A]-> dn5
-      properties: {}
-    }
-    dr19 {
-      dn4 -[:D]-> dn5
-      properties: {}
-    }
-    dr20 {
-      dn5 -[:D]-> dn6
-      properties: {}
-    }
-    dr21 {
-      dn5 -[:A]-> dn8
-      properties: {}
-    }
-    dr22 {
-      dn5 -[:B]-> dn7
-      properties: {}
-    }
-    dr23 {
-      dn5 -[:A]-> dn7
-      properties: {}
-    }
-    dr24 {
-      dn6 -[:A]-> dn4
-      properties: {}
-    }
-    dr25 {
-      dn6 -[:A]-> dn0
-      properties: {}
-    }
-    dr26 {
-      dn6 -[:D]-> dn2
-      properties: {}
-    }
-    dr27 {
-      dn6 -[:D]-> dn5
-      properties: {}
-    }
-    dr28 {
-      dn7 -[:D]-> dn0
-      properties: {}
-    }
-    dr29 {
-      dn7 -[:C]-> dn9
-      properties: {}
-    }
-    dr30 {
-      dn7 -[:A]-> dn4
-      properties: {}
-    }
-    dr31 {
-      dn7 -[:C]-> dn5
-      properties: {}
-    }
-    dr32 {
-      dn8 -[:C]-> dn5
-      properties: {}
-    }
-    dr33 {
-      dn8 -[:B]-> dn7
-      properties: {}
-    }
-    dr34 {
-      dn8 -[:D]-> dn6
-      properties: {}
-    }
-    dr35 {
-      dn8 -[:B]-> dn6
-      properties: {}
-    }
-    dr36 {
-      dn9 -[:A]-> dn0
-      properties: {}
-    }
-    dr37 {
-      dn9 -[:C]-> dn4
-      properties: {}
-    }
-    dr38 {
-      dn9 -[:B]-> dn7
-      properties: {}
-    }
-    dr39 {
-      dn9 -[:D]-> dn1
-      properties: {}
-    }
-  allRelationships: [dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, dr21, dr22, dr23, dr24, dr25, dr26, dr27, dr28, dr29, dr30, dr31, dr32, dr33, dr34, dr35, dr36, dr37, dr38, dr39]
-  outgoing:
-    dn0: [dr0, dr1, dr2, dr3]
-    dn1: [dr4, dr5, dr6, dr7]
-    dn2: [dr8, dr9, dr10, dr11]
-    dn3: [dr12, dr13, dr14, dr15]
-    dn4: [dr16, dr17, dr18, dr19]
-    dn5: [dr20, dr21, dr22, dr23]
-    dn6: [dr24, dr25, dr26, dr27]
-    dn7: [dr28, dr29, dr30, dr31]
-    dn8: [dr32, dr33, dr34, dr35]
-    dn9: [dr36, dr37, dr38, dr39]
-  incoming:
-    dn0: [dr4, dr12, dr17, dr25, dr28, dr36]
-    dn1: [dr0, dr11, dr15, dr39]
-    dn2: [dr7, dr26]
-    dn3: [dr2, dr10]
-    dn4: [dr1, dr6, dr8, dr24, dr30, dr37]
-    dn5: [dr3, dr14, dr18, dr19, dr27, dr31, dr32]
-    dn6: [dr13, dr20, dr34, dr35]
-    dn7: [dr5, dr9, dr22, dr23, dr33, dr38]
-    dn8: [dr16, dr21]
-    dn9: [dr29]
-  metrics:
-    DatabaseMetrics {
-      database:
-        CursorMetrics {
-          allRelationshipCursorOpens: 1
-          allRelationshipCursorIncrements: 40
-          adjacencyCursorOpens: 20
-          adjacencyCursorIncrements: 79
-        }
-      relationshipAttributeCache: lookups=0, hits=0, misses=0
-      nodeAttributeCache: lookups=0, hits=0, misses=0
-      relationshipEndpointCache: lookups=0, hits=0, misses=0
-      predicateCache: lookups=0, hits=0, misses=0
-    }
-}
-query graph: 
+QG: 
 QueryGraph {
   patternNodes: [
     PatternNode{variable=v0, inlinePredicates=[]}
     PatternNode{variable=v1, inlinePredicates=[]}
+    PatternNode{variable=v2, inlinePredicates=[]}
     PatternNode{variable=v3, inlinePredicates=[]}
-    PatternNode{variable=v5, inlinePredicates=[]}
-    PatternNode{variable=v7, inlinePredicates=[]}
-    PatternNode{variable=v9, inlinePredicates=[]}
+    PatternNode{variable=v4, inlinePredicates=[]}
+    PatternNode{variable=v10, inlinePredicates=[]}
+    PatternNode{variable=v11, inlinePredicates=[]}
+    PatternNode{variable=v12, inlinePredicates=[]}
+    PatternNode{variable=v13, inlinePredicates=[]}
+    PatternNode{variable=v19, inlinePredicates=[]}
+    PatternNode{variable=v20, inlinePredicates=[]}
+    PatternNode{variable=v21, inlinePredicates=[]}
+    PatternNode{variable=v22, inlinePredicates=[]}
+    PatternNode{variable=v28, inlinePredicates=[]}
+    PatternNode{variable=v29, inlinePredicates=[]}
+    PatternNode{variable=v30, inlinePredicates=[]}
+    PatternNode{variable=v31, inlinePredicates=[]}
   ],
   patternRelationships: [
-    PatternRelationship{variable=v2, start=v0, end=v1, direction=Outgoing, inlinePredicates=[HasRelType(v2, "A")]}
-    PatternRelationship{variable=v4, start=v0, end=v3, direction=Outgoing, inlinePredicates=[HasRelType(v4, "D")]}
-    PatternRelationship{variable=v6, start=v1, end=v5, direction=Outgoing, inlinePredicates=[HasRelType(v6, "C")]}
-    PatternRelationship{variable=v8, start=v0, end=v7, direction=Outgoing, inlinePredicates=[HasRelType(v8, "C")]}
-    PatternRelationship{variable=v10, start=v9, end=v3, direction=Outgoing, inlinePredicates=[HasRelType(v10, "D")]}
+    PatternRelationship{variable=v5, start=v1, end=v2, direction=Outgoing, inlinePredicates=[HasRelType(v5, "R")]}
+    PatternRelationship{variable=v6, start=v2, end=v3, direction=Outgoing, inlinePredicates=[HasRelType(v6, "R")]}
+    PatternRelationship{variable=v7, start=v3, end=v4, direction=Outgoing, inlinePredicates=[HasRelType(v7, "R")]}
+    PatternRelationship{variable=v8, start=v4, end=v1, direction=Outgoing, inlinePredicates=[HasRelType(v8, "R")]}
+    PatternRelationship{variable=v9, start=v1, end=v0, direction=Outgoing, inlinePredicates=[HasRelType(v9, "R")]}
+    PatternRelationship{variable=v14, start=v10, end=v11, direction=Outgoing, inlinePredicates=[HasRelType(v14, "R")]}
+    PatternRelationship{variable=v15, start=v11, end=v12, direction=Outgoing, inlinePredicates=[HasRelType(v15, "R")]}
+    PatternRelationship{variable=v16, start=v12, end=v13, direction=Outgoing, inlinePredicates=[HasRelType(v16, "R")]}
+    PatternRelationship{variable=v17, start=v13, end=v10, direction=Outgoing, inlinePredicates=[HasRelType(v17, "R")]}
+    PatternRelationship{variable=v18, start=v10, end=v0, direction=Outgoing, inlinePredicates=[HasRelType(v18, "R")]}
+    PatternRelationship{variable=v23, start=v19, end=v20, direction=Outgoing, inlinePredicates=[HasRelType(v23, "R")]}
+    PatternRelationship{variable=v24, start=v20, end=v21, direction=Outgoing, inlinePredicates=[HasRelType(v24, "R")]}
+    PatternRelationship{variable=v25, start=v21, end=v22, direction=Outgoing, inlinePredicates=[HasRelType(v25, "R")]}
+    PatternRelationship{variable=v26, start=v22, end=v19, direction=Outgoing, inlinePredicates=[HasRelType(v26, "R")]}
+    PatternRelationship{variable=v27, start=v19, end=v0, direction=Outgoing, inlinePredicates=[HasRelType(v27, "R")]}
+    PatternRelationship{variable=v32, start=v28, end=v29, direction=Outgoing, inlinePredicates=[HasRelType(v32, "R")]}
+    PatternRelationship{variable=v33, start=v29, end=v30, direction=Outgoing, inlinePredicates=[HasRelType(v33, "R")]}
+    PatternRelationship{variable=v34, start=v30, end=v31, direction=Outgoing, inlinePredicates=[HasRelType(v34, "R")]}
+    PatternRelationship{variable=v35, start=v31, end=v28, direction=Outgoing, inlinePredicates=[HasRelType(v35, "R")]}
+    PatternRelationship{variable=v36, start=v28, end=v0, direction=Outgoing, inlinePredicates=[HasRelType(v36, "R")]}
   ],
   otherPredicates: [
   ],
   sharedBlocks: [
+    SharedBlock{block_id=B0, relationships=[v5, v6, v7, v8, v9]}
+    SharedBlock{block_id=B1, relationships=[v14, v15, v16, v17, v18]}
+    SharedBlock{block_id=B2, relationships=[v23, v24, v25, v26, v27]}
+    SharedBlock{block_id=B3, relationships=[v32, v33, v34, v35, v36]}
   ]
 }
-raw edge graph: 
-EdgeGraphRaw {
-  nodes: [
-    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p2}
-    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p0}
-    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v1, end=v5, signatureId=p1}
-    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p1}
-    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v3, signatureId=p0}
-  ],
-  adjacency: [
-    re0 -> [{type=StartStart, other=re1}, {type=EndStart, other=re2}, {type=StartStart, other=re3}]
-    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}]
-    re2 -> [{type=StartEnd, other=re0}]
-    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}]
-    re4 -> [{type=EndEnd, other=re1}]
-  ]
-}
-block_occurrences: 
-classification of node: 
-re0: Outer{}
-re1: Outer{}
-re2: Outer{}
-re3: Outer{}
-re4: Outer{}
-EagerExecutor::constructor
-Candidate space: 
-CandidateSpace {
-  candidateSets (3):
-    p0: size=10, values=[dr2, dr7, dr13, dr19, dr20, dr26, dr27, dr28, dr34, dr39]
-    p1: size=8, values=[dr3, dr4, dr12, dr15, dr29, dr31, dr32, dr37]
-    p2: size=12, values=[dr0, dr1, dr5, dr6, dr11, dr18, dr21, dr23, dr24, dr25, dr30, dr36]
-  queries (1):
-    query[0]:
-      QueryCandidateSpace {
-        gr0 -> p2
-        gr1 -> p0
-        gr2 -> p1
-        gr3 -> p1
-        gr4 -> p0
-      }
-  candidateAdjacencies (9, edges=94):
-    (p0 -> p0, EndEnd): sources=10, edges=20
-    (p0 -> p1, StartStart): sources=10, edges=8
-    (p0 -> p2, StartStart): sources=10, edges=13
-    (p1 -> p0, StartStart): sources=8, edges=8
-    (p1 -> p2, StartStart): sources=8, edges=7
-    (p1 -> p2, StartEnd): sources=8, edges=9
-    (p2 -> p0, StartStart): sources=12, edges=13
-    (p2 -> p1, StartStart): sources=12, edges=7
-    (p2 -> p1, EndStart): sources=12, edges=9
-}
-resultant embeddings: 
-Embedding {
-  v2 -> dr5
-  v4 -> dr7
-  v6 -> dr29
-  v8 -> dr4
-  v10 -> dr26
-}
-Embedding {
-  v2 -> dr5
-  v4 -> dr7
-  v6 -> dr31
-  v8 -> dr4
-  v10 -> dr26
-}
-executor metrics: 
-EagerExecutionMetrics {
-  recursiveCallsAtDepth: [1, 10, 8, 7, 4, 2]
-  candidatesVisited: 35
-  rejectedByUniqueness: 4
-  rejectedByAdjacency: 0
-  completeMatches: 2
-  matchingOrder: [ce1, ce3, ce0, ce2, ce4]
-}
-database metrics: 
-DatabaseMetrics {
-  database:
-    CursorMetrics {
-      allRelationshipCursorOpens: 2
-      allRelationshipCursorIncrements: 80
-      adjacencyCursorOpens: 110
-      adjacencyCursorIncrements: 438
-    }
-  relationshipAttributeCache: lookups=120, hits=80, misses=40, hitRate=0.667
-  nodeAttributeCache: lookups=0, hits=0, misses=0
-  relationshipEndpointCache: lookups=236, hits=184, misses=52, hitRate=0.780
-  predicateCache: lookups=120, hits=0, misses=120, hitRate=0.000
-}
+Running WITH shared blocks...
+Running WITHOUT shared blocks...
+
+
+================ SHARED BLOCK EVALUATION ================
+
+WITHOUT SHARED BLOCKS
+--------------------------------------------------
+time:                         3853.728 ms
+matches:                      0
+
+Candidate visits
+  outer candidates:            400000
+  shared-block candidates:     0
+  total candidates:            400000
+
+Recursive calls
+  outer recursive calls:       1
+  shared-block recursive calls: 0
+  total recursive calls:       1
+
+Shared-block outer usage
+  rows visited:                0
+  rows rejected by uniqueness: 0
+
+Shared-block cache
+  iterator creations:          0
+  cache entries created:       0
+  row requests:                0
+  cached rows returned:        0
+  rows produced:               0
+  producer resumptions:        0
+  producer exhaustions:        0
+
+Shared-block DFS rejection
+  rejected by uniqueness:      0
+  rejected by adjacency:       0
+  rejected by predicate:       0
+
+WITH SHARED BLOCKS
+--------------------------------------------------
+time:                         3752.859 ms
+matches:                      0
+
+Candidate visits
+  outer candidates:            400000
+  shared-block candidates:     0
+  total candidates:            400000
+
+Recursive calls
+  outer recursive calls:       1
+  shared-block recursive calls: 0
+  total recursive calls:       1
+
+Shared-block outer usage
+  rows visited:                0
+  rows rejected by uniqueness: 0
+
+Shared-block cache
+  iterator creations:          0
+  cache entries created:       0
+  row requests:                0
+  cached rows returned:        0
+  rows produced:               0
+  producer resumptions:        0
+  producer exhaustions:        0
+
+Shared-block DFS rejection
+  rejected by uniqueness:      0
+  rejected by adjacency:       0
+  rejected by predicate:       0
+
+COMPARISON
+--------------------------------------------------
+match counts equal:            true
+runtime speedup:               1.027x
+shared/normal candidate ratio: 1.000
+candidate reduction:           0.000%
+shared/normal DFS call ratio:  1.000

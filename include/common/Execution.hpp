@@ -724,7 +724,9 @@ namespace execution
         const ib::BuildResult &buildResult,
         k::CachedDatabaseAccess &database,
         PredicateEvaluator &predicateEvaluator,
-        EagerExecutorOptions options = {});
+        EagerExecutorOptions options = {},
+        size_t limit = 1000000
+      );
 
     /**
      * Materialize all embeddings for one query.
@@ -741,6 +743,7 @@ namespace execution
       return metrics_;
     }
 
+    
   private:
     /**
      * fields
@@ -769,6 +772,11 @@ namespace execution
     CandidateSpace candidateSpace_;
 
     EagerExecutionMetrics metrics_;
+
+    // for debugging purposes
+    std::chrono::_V2::steady_clock::time_point last_time_;
+
+    size_t limit_;
 
     void backtrack(
         size_t queryIndex,
@@ -861,7 +869,7 @@ namespace execution
   class LazyExecutorWithSB
   {
   public:
-    LazyExecutorWithSB(k::InMemoryDatabase &database, k::DatabaseMetrics &databaseMetrics, ib::BuildResult &buildResult)
+    LazyExecutorWithSB(k::InMemoryDatabase &database, k::DatabaseMetrics &databaseMetrics, ib::BuildResult &buildResult, PredicateEvaluatorConfig predEvalConfig, size_t limit)
         : buildResult_{buildResult},
           database_{database},
           databaseMetrics_{databaseMetrics},
@@ -869,12 +877,15 @@ namespace execution
           predicateEvaluator_{
               buildResult.predicateRegistry,
               cachedDatabase_,
-              databaseMetrics},
+              databaseMetrics,
+              predEvalConfig
+          },
           sharedBlockManager_{
               buildResult.shared_block_registry,
               predicateEvaluator_,
               cachedDatabase_,
-              sharedBlockMetrics_}
+              sharedBlockMetrics_},
+          limit_{limit}
     {
       queryMetrics_.resize(
           buildResult_.edgeGraphs.size());
@@ -916,6 +927,10 @@ namespace execution
     SharedBlockIteratorManager sharedBlockManager_;
 
     std::vector<QueryExecutionMetrics> queryMetrics_;
+
+    // for debugging purposes
+    std::chrono::_V2::steady_clock::time_point last_time_;
+    size_t limit_;
 
     /**
      * main enumerator function

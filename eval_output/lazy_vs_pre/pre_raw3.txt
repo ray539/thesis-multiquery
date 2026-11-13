@@ -1,0 +1,229 @@
+precomp, limit = 8000000:
+raw edge graph:
+EdgeGraphRaw {
+  nodes: [
+    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p24}
+    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p22}
+    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v1, end=v5, signatureId=p23}
+    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p22}
+    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p21}
+    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p17}
+    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v13, end=v5, signatureId=p20}
+    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p19}
+    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v9, end=v17, signatureId=p18}
+    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v19, end=v9, signatureId=p17}
+  ],
+  adjacency: [
+    re0 -> [{type=StartStart, other=re1}, {type=EndStart, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
+    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
+    re2 -> [{type=StartEnd, other=re0}, {type=StartEnd, other=re4}, {type=EndEnd, other=re6}]
+    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
+    re4 -> [{type=EndEnd, other=re0}, {type=EndStart, other=re2}, {type=StartEnd, other=re5}, {type=StartStart, other=re8}, {type=StartEnd, other=re9}]
+    re5 -> [{type=EndStart, other=re4}, {type=EndStart, other=re8}, {type=EndEnd, other=re9}]
+    re6 -> [{type=EndEnd, other=re2}]
+    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
+    re8 -> [{type=StartStart, other=re4}, {type=StartEnd, other=re5}, {type=StartEnd, other=re9}]
+    re9 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}, {type=EndStart, other=re8}]
+  ]
+}
+block_occurrences:
+classification of node:
+re0: Outer{}
+re1: Outer{}
+re2: Outer{}
+re3: Outer{}
+re4: Outer{}
+re5: Outer{}
+re6: Outer{}
+re7: Outer{}
+re8: Outer{}
+re9: Outer{}
+EagerExecutor::constructor
+Candidate space:
+CandidateSpace {
+  candidateSets (8):
+    p17: size=355975, values=[dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr18, dr20, dr21, dr22, dr23, ... +355955]
+    p18: size=354830, values=[dr0, dr1, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, ... +354810]
+    p19: size=304441, values=[dr3, dr5, dr6, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr18, dr20, dr21, dr22, dr23, dr25, dr26, dr27, dr28, dr29, ... +304421]
+    p20: size=389143, values=[dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, ... +389123]
+    p21: size=338915, values=[dr0, dr1, dr3, dr4, dr5, dr6, dr7, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr18, dr19, dr20, dr21, dr24, dr25, ... +338895]
+    p22: size=356399, values=[dr1, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr21, dr22, ... +356379]
+    p23: size=350402, values=[dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, ... +350382]
+    p24: size=339206, values=[dr1, dr3, dr4, dr5, dr6, dr7, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr18, dr19, dr21, dr22, dr23, dr24, dr25, ... +339186]
+  queries (1):
+    query[0]:
+      QueryCandidateSpace {
+        gr0 -> p24
+        gr1 -> p22
+        gr2 -> p23
+        gr3 -> p22
+        gr4 -> p21
+        gr5 -> p17
+        gr6 -> p20
+        gr7 -> p19
+        gr8 -> p18
+        gr9 -> p17
+      }
+  candidateAdjacencies (22, edges=34521802):
+    (p17 -> p17, EndEnd): sources=355975, edges=1808171
+    (p17 -> p18, EndStart): sources=355975, edges=1533705
+    (p17 -> p21, EndStart): sources=355975, edges=1464794
+    (p18 -> p17, StartEnd): sources=354830, edges=1533705
+    (p18 -> p21, StartStart): sources=354830, edges=1720430
+    (p19 -> p22, EndStart): sources=304441, edges=1451436
+    (p19 -> p24, EndStart): sources=304441, edges=1381096
+    (p20 -> p23, EndEnd): sources=389143, edges=1777407
+    (p21 -> p17, StartEnd): sources=338915, edges=1464794
+    (p21 -> p18, StartStart): sources=338915, edges=1720430
+    (p21 -> p23, EndStart): sources=338915, edges=1356928
+    (p21 -> p24, EndEnd): sources=338915, edges=1557293
+    (p22 -> p19, StartEnd): sources=356399, edges=1451436
+    (p22 -> p22, StartStart): sources=356399, edges=1898515
+    (p22 -> p24, StartStart): sources=356399, edges=1806883
+    (p23 -> p20, EndEnd): sources=350402, edges=1777407
+    (p23 -> p21, StartEnd): sources=350402, edges=1356928
+    (p23 -> p24, StartEnd): sources=350402, edges=1357586
+    (p24 -> p19, StartEnd): sources=339206, edges=1381096
+    (p24 -> p21, EndEnd): sources=339206, edges=1557293
+    ... 2 more adjacency relations
+}
+done building scs, time: 136015 ms
+elapsed since last: 60000 ms
+complete matches: 3145455
+elapsed since last: 60000 ms
+complete matches: 6056156
+stopping due to limit
+enumeration time: 155747 ms
+execution metrics:
+EagerExecutionMetrics {
+  recursiveCallsAtDepth: [1, 34, 110, 471, 1972, 8186, 30735, 106174, 486544, 1905248, 8000000]
+  candidatesVisited: 13303999
+  rejectedByUniqueness: 2425623
+  rejectedByAdjacency: 0
+  completeMatches: 8000000
+  matchingOrder: [ce4, ce0, ce2, ce7, ce1, ce3, ce8, ce5, ce9, ce6]
+}
+database metrics
+DatabaseMetrics {
+  database:
+    CursorMetrics {
+      allRelationshipCursorOpens: 2
+      allRelationshipCursorIncrements: 800000
+      adjacencyCursorOpens: 29963852
+      adjacencyCursorIncrements: 61094544
+    }
+  relationshipAttributeCache: lookups=400000, hits=0, misses=400000, hitRate=0.000
+  nodeAttributeCache: lookups=0, hits=0, misses=0
+  relationshipEndpointCache: lookups=105585099, hits=104785099, misses=800000, hitRate=0.992
+  predicateCache: lookups=35568020, hits=25568020, misses=10000000, hitRate=0.719
+}
+precomp, limit = 7000000:
+raw edge graph:
+EdgeGraphRaw {
+  nodes: [
+    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p24}
+    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p22}
+    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v1, end=v5, signatureId=p23}
+    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p22}
+    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p21}
+    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p17}
+    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v13, end=v5, signatureId=p20}
+    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p19}
+    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v9, end=v17, signatureId=p18}
+    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v19, end=v9, signatureId=p17}
+  ],
+  adjacency: [
+    re0 -> [{type=StartStart, other=re1}, {type=EndStart, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
+    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
+    re2 -> [{type=StartEnd, other=re0}, {type=StartEnd, other=re4}, {type=EndEnd, other=re6}]
+    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
+    re4 -> [{type=EndEnd, other=re0}, {type=EndStart, other=re2}, {type=StartEnd, other=re5}, {type=StartStart, other=re8}, {type=StartEnd, other=re9}]
+    re5 -> [{type=EndStart, other=re4}, {type=EndStart, other=re8}, {type=EndEnd, other=re9}]
+    re6 -> [{type=EndEnd, other=re2}]
+    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
+    re8 -> [{type=StartStart, other=re4}, {type=StartEnd, other=re5}, {type=StartEnd, other=re9}]
+    re9 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}, {type=EndStart, other=re8}]
+  ]
+}
+block_occurrences:
+classification of node:
+re0: Outer{}
+re1: Outer{}
+re2: Outer{}
+re3: Outer{}
+re4: Outer{}
+re5: Outer{}
+re6: Outer{}
+re7: Outer{}
+re8: Outer{}
+re9: Outer{}
+EagerExecutor::constructor
+Candidate space:
+CandidateSpace {
+  candidateSets (8):
+    p17: size=355975, values=[dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr18, dr20, dr21, dr22, dr23, ... +355955]
+    p18: size=354830, values=[dr0, dr1, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, ... +354810]
+    p19: size=304441, values=[dr3, dr5, dr6, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr18, dr20, dr21, dr22, dr23, dr25, dr26, dr27, dr28, dr29, ... +304421]
+    p20: size=389143, values=[dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, ... +389123]
+    p21: size=338915, values=[dr0, dr1, dr3, dr4, dr5, dr6, dr7, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr18, dr19, dr20, dr21, dr24, dr25, ... +338895]
+    p22: size=356399, values=[dr1, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr21, dr22, ... +356379]
+    p23: size=350402, values=[dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr9, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr17, dr18, dr19, dr20, ... +350382]
+    p24: size=339206, values=[dr1, dr3, dr4, dr5, dr6, dr7, dr10, dr11, dr12, dr13, dr14, dr15, dr16, dr18, dr19, dr21, dr22, dr23, dr24, dr25, ... +339186]
+  queries (1):
+    query[0]:
+      QueryCandidateSpace {
+        gr0 -> p24
+        gr1 -> p22
+        gr2 -> p23
+        gr3 -> p22
+        gr4 -> p21
+        gr5 -> p17
+        gr6 -> p20
+        gr7 -> p19
+        gr8 -> p18
+        gr9 -> p17
+      }
+  candidateAdjacencies (22, edges=34521802):
+    (p17 -> p17, EndEnd): sources=355975, edges=1808171
+    (p17 -> p18, EndStart): sources=355975, edges=1533705
+    (p17 -> p21, EndStart): sources=355975, edges=1464794
+    (p18 -> p17, StartEnd): sources=354830, edges=1533705
+    (p18 -> p21, StartStart): sources=354830, edges=1720430
+    (p19 -> p22, EndStart): sources=304441, edges=1451436
+    (p19 -> p24, EndStart): sources=304441, edges=1381096
+    (p20 -> p23, EndEnd): sources=389143, edges=1777407
+    (p21 -> p17, StartEnd): sources=338915, edges=1464794
+    (p21 -> p18, StartStart): sources=338915, edges=1720430
+    (p21 -> p23, EndStart): sources=338915, edges=1356928
+    (p21 -> p24, EndEnd): sources=338915, edges=1557293
+    (p22 -> p19, StartEnd): sources=356399, edges=1451436
+    (p22 -> p22, StartStart): sources=356399, edges=1898515
+    (p22 -> p24, StartStart): sources=356399, edges=1806883
+    (p23 -> p20, EndEnd): sources=350402, edges=1777407
+    (p23 -> p21, StartEnd): sources=350402, edges=1356928
+    (p23 -> p24, StartEnd): sources=350402, edges=1357586
+    (p24 -> p19, StartEnd): sources=339206, edges=1381096
+    (p24 -> p21, EndEnd): sources=339206, edges=1557293
+    ... 2 more adjacency relations
+}
+done building scs, time: 142300 ms
+elapsed since last: 60000 ms
+complete matches: 1873801
+elapsed since last: 60751 ms
+complete matches: 3428744
+elapsed since last: 60000 ms
+complete matches: 4294675
+elapsed since last: 60000 ms
+complete matches: 5645825
+elapsed since last: 61157 ms
+complete matches: 6212952
+elapsed since last: 62086 ms
+complete matches: 6212962
+elapsed since last: 88389 ms
+complete matches: 6212973
+elapsed since last: 63174 ms
+complete matches: 6212984
+elapsed since last: 63297 ms
+complete matches: 6212994
+elapsed since last: 60030 ms
+complete matches: 6213001

@@ -1,0 +1,267 @@
+existence:
+raw edge graph: 
+EdgeGraphRaw {
+  nodes: [
+    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p30}
+    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p29}
+    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v5, end=v1, signatureId=p28}
+    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p27}
+    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p26}
+    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p23}
+    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v5, end=v13, signatureId=p25}
+    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p24}
+    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v17, end=v9, signatureId=p23}
+    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v13, end=v19, signatureId=p22}
+  ],
+  adjacency: [
+    re0 -> [{type=StartStart, other=re1}, {type=EndEnd, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
+    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
+    re2 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re4}, {type=StartStart, other=re6}]
+    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
+    re4 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re2}, {type=StartEnd, other=re5}, {type=StartEnd, other=re8}]
+    re5 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re8}]
+    re6 -> [{type=StartStart, other=re2}, {type=EndStart, other=re9}]
+    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
+    re8 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}]
+    re9 -> [{type=StartEnd, other=re6}]
+  ]
+}
+block_occurrences: 
+classification of node: 
+re0: Outer{}
+re1: Outer{}
+re2: Outer{}
+re3: Outer{}
+re4: Outer{}
+re5: Outer{}
+re6: Outer{}
+re7: Outer{}
+re8: Outer{}
+re9: Outer{}
+candidate space build time: 39679 ms
+CandidateSpace {
+  candidateSets (9):
+    p22: size=23786, values=[dr20, dr65, dr67, dr70, dr80, dr81, dr82, dr109, dr140, dr142, dr150, dr151, dr161, dr171, dr179, dr195, dr204, dr275, dr278, dr335, ... +23766]
+    p23: size=4368, values=[dr99, dr477, dr636, dr656, dr758, dr859, dr862, dr877, dr893, dr1022, dr1072, dr1101, dr1235, dr1270, dr1284, dr1359, dr1376, dr1451, dr1504, dr1554, ... +4348]
+    p24: size=5602, values=[dr0, dr13, dr126, dr269, dr305, dr324, dr347, dr377, dr386, dr607, dr634, dr655, dr712, dr716, dr901, dr903, dr925, dr931, dr933, dr971, ... +5582]
+    p25: size=3920, values=[dr166, dr222, dr397, dr491, dr520, dr522, dr824, dr825, dr848, dr924, dr952, dr954, dr1125, dr1222, dr1703, dr2018, dr2408, dr2411, dr2544, dr2548, ... +3900]
+    p26: size=1513, values=[dr721, dr732, dr955, dr988, dr1178, dr1220, dr1309, dr1411, dr1587, dr1827, dr1893, dr2101, dr2173, dr2409, dr2884, dr3044, dr3046, dr3102, dr3129, dr3777, ... +1493]
+    p27: size=4080, values=[dr251, dr448, dr487, dr912, dr1088, dr1397, dr1653, dr1681, dr2100, dr2117, dr2394, dr2395, dr2458, dr2463, dr2473, dr2474, dr2536, dr2856, dr2948, dr3173, ... +4060]
+    p28: size=1630, values=[dr220, dr399, dr521, dr827, dr849, dr850, dr927, dr955, dr1126, dr1220, dr2550, dr2577, dr2664, dr2795, dr2871, dr3044, dr3567, dr3804, dr4064, dr4080, ... +1610]
+    p29: size=4148, values=[dr248, dr449, dr484, dr914, dr1090, dr1396, dr1398, dr1655, dr1682, dr1683, dr2102, dr2119, dr2393, dr2456, dr2460, dr2472, dr2538, dr2857, dr2949, dr3174, ... +4128]
+    p30: size=1447, values=[dr913, dr1089, dr1652, dr1680, dr2103, dr2118, dr2457, dr2462, dr2950, dr3172, dr3365, dr3396, dr4290, dr4424, dr4719, dr4959, dr5037, dr5047, dr5394, dr5597, ... +1427]
+  queries (1):
+    query[0]:
+      QueryCandidateSpace {
+        gr0 -> p30
+        gr1 -> p29
+        gr2 -> p28
+        gr3 -> p27
+        gr4 -> p26
+        gr5 -> p23
+        gr6 -> p25
+        gr7 -> p24
+        gr8 -> p23
+        gr9 -> p22
+      }
+  candidateAdjacencies (25, edges=92196):
+    (p22 -> p25, StartEnd): sources=23786, edges=5736
+    (p23 -> p23, EndEnd): sources=4368, edges=11276
+    (p23 -> p26, EndStart): sources=4368, edges=3640
+    (p24 -> p27, EndStart): sources=5602, edges=6501
+    (p24 -> p29, EndStart): sources=5602, edges=6600
+    (p24 -> p30, EndStart): sources=5602, edges=2322
+    (p25 -> p22, EndStart): sources=3920, edges=5736
+    (p25 -> p28, StartStart): sources=3920, edges=1936
+    (p26 -> p23, StartEnd): sources=1513, edges=3640
+    (p26 -> p28, EndEnd): sources=1513, edges=2181
+    (p26 -> p30, EndEnd): sources=1513, edges=1660
+    (p27 -> p24, StartEnd): sources=4080, edges=6501
+    (p27 -> p29, StartStart): sources=4080, edges=4711
+    (p27 -> p30, StartStart): sources=4080, edges=1682
+    (p28 -> p25, StartStart): sources=1630, edges=1936
+    (p28 -> p26, EndEnd): sources=1630, edges=2181
+    (p28 -> p30, EndEnd): sources=1630, edges=1793
+    (p29 -> p24, StartEnd): sources=4148, edges=6600
+    (p29 -> p27, StartStart): sources=4148, edges=4711
+    (p29 -> p30, StartStart): sources=4148, edges=1698
+    ... 5 more adjacency relations
+}
+existence degree:
+raw edge graph: 
+EdgeGraphRaw {
+  nodes: [
+    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p30}
+    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p29}
+    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v5, end=v1, signatureId=p28}
+    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p27}
+    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p26}
+    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p23}
+    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v5, end=v13, signatureId=p25}
+    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p24}
+    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v17, end=v9, signatureId=p23}
+    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v13, end=v19, signatureId=p22}
+  ],
+  adjacency: [
+    re0 -> [{type=StartStart, other=re1}, {type=EndEnd, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
+    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
+    re2 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re4}, {type=StartStart, other=re6}]
+    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
+    re4 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re2}, {type=StartEnd, other=re5}, {type=StartEnd, other=re8}]
+    re5 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re8}]
+    re6 -> [{type=StartStart, other=re2}, {type=EndStart, other=re9}]
+    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
+    re8 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}]
+    re9 -> [{type=StartEnd, other=re6}]
+  ]
+}
+block_occurrences: 
+classification of node: 
+re0: Outer{}
+re1: Outer{}
+re2: Outer{}
+re3: Outer{}
+re4: Outer{}
+re5: Outer{}
+re6: Outer{}
+re7: Outer{}
+re8: Outer{}
+re9: Outer{}
+candidate space build time: 36853 ms
+CandidateSpace {
+  candidateSets (9):
+    p22: size=23786, values=[dr20, dr65, dr67, dr70, dr80, dr81, dr82, dr109, dr140, dr142, dr150, dr151, dr161, dr171, dr179, dr195, dr204, dr275, dr278, dr335, ... +23766]
+    p23: size=4368, values=[dr99, dr477, dr636, dr656, dr758, dr859, dr862, dr877, dr893, dr1022, dr1072, dr1101, dr1235, dr1270, dr1284, dr1359, dr1376, dr1451, dr1504, dr1554, ... +4348]
+    p24: size=5528, values=[dr0, dr13, dr126, dr269, dr305, dr324, dr347, dr377, dr386, dr607, dr634, dr655, dr712, dr716, dr901, dr903, dr925, dr931, dr933, dr971, ... +5508]
+    p25: size=3822, values=[dr166, dr222, dr397, dr491, dr520, dr522, dr824, dr825, dr848, dr924, dr952, dr954, dr1125, dr1222, dr1703, dr2018, dr2408, dr2411, dr2544, dr2548, ... +3802]
+    p26: size=1513, values=[dr721, dr732, dr955, dr988, dr1178, dr1220, dr1309, dr1411, dr1587, dr1827, dr1893, dr2101, dr2173, dr2409, dr2884, dr3044, dr3046, dr3102, dr3129, dr3777, ... +1493]
+    p27: size=4025, values=[dr251, dr448, dr487, dr912, dr1088, dr1397, dr1653, dr1681, dr2100, dr2117, dr2394, dr2395, dr2458, dr2463, dr2473, dr2474, dr2536, dr2856, dr2948, dr3173, ... +4005]
+    p28: size=1630, values=[dr220, dr399, dr521, dr827, dr849, dr850, dr927, dr955, dr1126, dr1220, dr2550, dr2577, dr2664, dr2795, dr2871, dr3044, dr3567, dr3804, dr4064, dr4080, ... +1610]
+    p29: size=4093, values=[dr248, dr449, dr484, dr914, dr1090, dr1396, dr1398, dr1655, dr1682, dr1683, dr2102, dr2119, dr2393, dr2456, dr2460, dr2472, dr2538, dr2857, dr2949, dr3174, ... +4073]
+    p30: size=1443, values=[dr913, dr1089, dr1652, dr1680, dr2103, dr2118, dr2457, dr2462, dr2950, dr3172, dr3365, dr3396, dr4290, dr4424, dr4719, dr4959, dr5037, dr5047, dr5394, dr5597, ... +1423]
+  queries (1):
+    query[0]:
+      QueryCandidateSpace {
+        gr0 -> p30
+        gr1 -> p29
+        gr2 -> p28
+        gr3 -> p27
+        gr4 -> p26
+        gr5 -> p23
+        gr6 -> p25
+        gr7 -> p24
+        gr8 -> p23
+        gr9 -> p22
+      }
+  candidateAdjacencies (25, edges=91426):
+    (p22 -> p25, StartEnd): sources=23786, edges=5595
+    (p23 -> p23, EndEnd): sources=4368, edges=11276
+    (p23 -> p26, EndStart): sources=4368, edges=3640
+    (p24 -> p27, EndStart): sources=5528, edges=6416
+    (p24 -> p29, EndStart): sources=5528, edges=6517
+    (p24 -> p30, EndStart): sources=5528, edges=2316
+    (p25 -> p22, EndStart): sources=3822, edges=5595
+    (p25 -> p28, StartStart): sources=3822, edges=1936
+    (p26 -> p23, StartEnd): sources=1513, edges=3640
+    (p26 -> p28, EndEnd): sources=1513, edges=2181
+    (p26 -> p30, EndEnd): sources=1513, edges=1660
+    (p27 -> p24, StartEnd): sources=4025, edges=6416
+    (p27 -> p29, StartStart): sources=4025, edges=4649
+    (p27 -> p30, StartStart): sources=4025, edges=1678
+    (p28 -> p25, StartStart): sources=1630, edges=1936
+    (p28 -> p26, EndEnd): sources=1630, edges=2181
+    (p28 -> p30, EndEnd): sources=1630, edges=1793
+    (p29 -> p24, StartEnd): sources=4093, edges=6517
+    (p29 -> p27, StartStart): sources=4093, edges=4649
+    (p29 -> p30, StartStart): sources=4093, edges=1694
+    ... 5 more adjacency relations
+}
+bipartite matching:
+raw edge graph: 
+EdgeGraphRaw {
+  nodes: [
+    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p30}
+    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p29}
+    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v5, end=v1, signatureId=p28}
+    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p27}
+    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p26}
+    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p23}
+    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v5, end=v13, signatureId=p25}
+    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p24}
+    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v17, end=v9, signatureId=p23}
+    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v13, end=v19, signatureId=p22}
+  ],
+  adjacency: [
+    re0 -> [{type=StartStart, other=re1}, {type=EndEnd, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
+    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
+    re2 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re4}, {type=StartStart, other=re6}]
+    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
+    re4 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re2}, {type=StartEnd, other=re5}, {type=StartEnd, other=re8}]
+    re5 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re8}]
+    re6 -> [{type=StartStart, other=re2}, {type=EndStart, other=re9}]
+    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
+    re8 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}]
+    re9 -> [{type=StartEnd, other=re6}]
+  ]
+}
+block_occurrences: 
+classification of node: 
+re0: Outer{}
+re1: Outer{}
+re2: Outer{}
+re3: Outer{}
+re4: Outer{}
+re5: Outer{}
+re6: Outer{}
+re7: Outer{}
+re8: Outer{}
+re9: Outer{}
+candidate space build time: 43742 ms
+CandidateSpace {
+  candidateSets (9):
+    p22: size=23786, values=[dr20, dr65, dr67, dr70, dr80, dr81, dr82, dr109, dr140, dr142, dr150, dr151, dr161, dr171, dr179, dr195, dr204, dr275, dr278, dr335, ... +23766]
+    p23: size=4368, values=[dr99, dr477, dr636, dr656, dr758, dr859, dr862, dr877, dr893, dr1022, dr1072, dr1101, dr1235, dr1270, dr1284, dr1359, dr1376, dr1451, dr1504, dr1554, ... +4348]
+    p24: size=2640, values=[dr0, dr269, dr324, dr347, dr377, dr386, dr634, dr712, dr901, dr925, dr1022, dr1543, dr1780, dr1953, dr1987, dr2043, dr2057, dr2287, dr2300, dr2368, ... +2620]
+    p25: size=1917, values=[dr222, dr397, dr520, dr522, dr824, dr825, dr848, dr924, dr952, dr954, dr1125, dr1222, dr2548, dr2551, dr2576, dr2665, dr2792, dr2870, dr3045, dr3564, ... +1897]
+    p26: size=1513, values=[dr721, dr732, dr955, dr988, dr1178, dr1220, dr1309, dr1411, dr1587, dr1827, dr1893, dr2101, dr2173, dr2409, dr2884, dr3044, dr3046, dr3102, dr3129, dr3777, ... +1493]
+    p27: size=1932, values=[dr912, dr1088, dr1397, dr1653, dr1681, dr2100, dr2117, dr2458, dr2463, dr2536, dr2948, dr3173, dr3367, dr3397, dr3399, dr4083, dr4289, dr4333, dr4426, dr4718, ... +1912]
+    p28: size=1630, values=[dr220, dr399, dr521, dr827, dr849, dr850, dr927, dr955, dr1126, dr1220, dr2550, dr2577, dr2664, dr2795, dr2871, dr3044, dr3567, dr3804, dr4064, dr4080, ... +1610]
+    p29: size=1947, values=[dr914, dr1090, dr1396, dr1398, dr1655, dr1682, dr1683, dr2102, dr2119, dr2456, dr2460, dr2538, dr2949, dr3174, dr3175, dr3366, dr3398, dr4082, dr4291, dr4334, ... +1927]
+    p30: size=1374, values=[dr913, dr1089, dr1652, dr1680, dr2103, dr2118, dr2457, dr2462, dr2950, dr3172, dr3365, dr3396, dr4290, dr4424, dr4719, dr4959, dr5037, dr5047, dr5394, dr5597, ... +1354]
+  queries (1):
+    query[0]:
+      QueryCandidateSpace {
+        gr0 -> p30
+        gr1 -> p29
+        gr2 -> p28
+        gr3 -> p27
+        gr4 -> p26
+        gr5 -> p23
+        gr6 -> p25
+        gr7 -> p24
+        gr8 -> p23
+        gr9 -> p22
+      }
+  candidateAdjacencies (25, edges=66964):
+    (p22 -> p25, StartEnd): sources=23786, edges=2812
+    (p23 -> p23, EndEnd): sources=4368, edges=11276
+    (p23 -> p26, EndStart): sources=4368, edges=3640
+    (p24 -> p27, EndStart): sources=2640, edges=3089
+    (p24 -> p29, EndStart): sources=2640, edges=3101
+    (p24 -> p30, EndStart): sources=2640, edges=2199
+    (p25 -> p22, EndStart): sources=1917, edges=2812
+    (p25 -> p28, StartStart): sources=1917, edges=1936
+    (p26 -> p23, StartEnd): sources=1513, edges=3640
+    (p26 -> p28, EndEnd): sources=1513, edges=2181
+    (p26 -> p30, EndEnd): sources=1513, edges=1660
+    (p27 -> p24, StartEnd): sources=1932, edges=3089
+    (p27 -> p29, StartStart): sources=1932, edges=2224
+    (p27 -> p30, StartStart): sources=1932, edges=1594
+    (p28 -> p25, StartStart): sources=1630, edges=1936
+    (p28 -> p26, EndEnd): sources=1630, edges=2181
+    (p28 -> p30, EndEnd): sources=1630, edges=1793
+    (p29 -> p24, StartEnd): sources=1947, edges=3101
+    (p29 -> p27, StartStart): sources=1947, edges=2224
+    (p29 -> p30, StartStart): sources=1947, edges=1615
+    ... 5 more adjacency relations
+}

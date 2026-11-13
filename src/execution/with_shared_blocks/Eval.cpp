@@ -124,6 +124,11 @@ namespace execution
           ib::EIdxCollapsed,
           IntStrongHash> &processed)
   {
+
+    if (metrics.completeMatches >= limit_) {
+      co_return;
+    }
+
     // resize depth
     size_t depth = processed.size();
     if (metrics.recursiveCallsAtDepth.size() <= depth)
@@ -134,6 +139,17 @@ namespace execution
     if (depth == edgeGraph.num_nodes())
     {
       ++metrics.completeMatches;
+      auto t = std::chrono::steady_clock::now();
+      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t - last_time_).count();
+      if (elapsed >= 60000) {
+        std::cout << "elapsed since last: " << elapsed << " ms" << std::endl;
+        std::cout << "complete matches: " << metrics.completeMatches << std::endl;
+        last_time_ = std::chrono::steady_clock::now();
+      }
+      if (metrics.completeMatches >= limit_) {
+        std::cout << "stopping due to limit" << std::endl;
+        co_return;
+      }
       co_yield Embedding{embedding};
       co_return;
     }
@@ -161,6 +177,7 @@ namespace execution
           qidx,
           embedding,
           processed);
+
       k::RelationshipCursor cursor = h::regularCandidateCursor(constraints, cachedDatabase_);
       k::DRelId drel{0};
       while (cursor.next(drel))
@@ -171,6 +188,7 @@ namespace execution
           ++metrics.regularRejectedByUniqueness;
           continue;
         }
+
         if (!satisfiesConstraints(drel, constraints, cachedDatabase_))
         {
           ++metrics.regularRejectedByAdjacency;
@@ -291,6 +309,7 @@ namespace execution
       {
         co_yield Embedding{result};
       }
+      processed.erase(qidx);
       unextendEmbeddingWith(blockRow.value());
     }
   }
@@ -313,6 +332,7 @@ namespace execution
     Embedding embedding;
     std::unordered_set<k::DRelId, IntStrongHash> usedRelationships;
     std::unordered_set<ib::EIdxCollapsed, IntStrongHash> processed;
+    last_time_ = std::chrono::steady_clock::now();
     for (auto &&result :
          enumerateOuterDFS(
              edgeGraph,
@@ -330,6 +350,7 @@ namespace execution
   LazyExecutorWithSB::executeQuery(size_t queryIndex)
   {
     QueryExecutionResult result;
+    
     for (auto &&embedding : enumerateQuery(queryIndex))
     {
       result.matches.push_back(embedding);

@@ -2,15 +2,15 @@
 
 namespace evaluation
 {
-  RandomDataGraphGenerator::RandomDataGraphGenerator(
-      DataGraphGenConfig config)
+  RandomDataGraphGeneratorFixedDegree::RandomDataGraphGeneratorFixedDegree(
+      DataGraphFixedDegreeGenConfig config)
       : config_{std::move(config)},
         rng_{config_.seed}
   {
     validateConfig();
   }
 
-  void RandomDataGraphGenerator::populate(
+  void RandomDataGraphGeneratorFixedDegree::populate(
       k::InMemoryDatabase &db)
   {
     std::vector<k::DNodeId> nodes = createNodes(db);
@@ -18,7 +18,7 @@ namespace evaluation
     createRelationships(db, nodes);
   }
 
-  void RandomDataGraphGenerator::validateConfig() const
+  void RandomDataGraphGeneratorFixedDegree::validateConfig() const
   {
     if (config_.nodeCount < 2)
     {
@@ -35,7 +35,7 @@ namespace evaluation
     // simple validationcheck
     // - no self loops, so this node can connect to at most N-1 others
     // - then each of these rels can be one of relTypes.size() types
-    size_t maxDistinctRelationshipsPerNode = (config_.nodeCount - 1) *  config_.relationshipTypes.size();
+    size_t maxDistinctRelationshipsPerNode = (config_.nodeCount - 1) * config_.relationshipTypes.size();
 
     if (config_.outgoingDegree > maxDistinctRelationshipsPerNode)
     {
@@ -44,7 +44,7 @@ namespace evaluation
     }
   }
 
-  std::vector<k::DNodeId> RandomDataGraphGenerator::createNodes(
+  std::vector<k::DNodeId> RandomDataGraphGeneratorFixedDegree::createNodes(
       k::InMemoryDatabase &db)
   {
     std::vector<k::DNodeId> result;
@@ -57,19 +57,19 @@ namespace evaluation
     return result;
   }
 
-  size_t RandomDataGraphGenerator::randomNodeIndex()
+  size_t RandomDataGraphGeneratorFixedDegree::randomNodeIndex()
   {
     std::uniform_int_distribution<size_t> distribution(0, config_.nodeCount - 1);
     return distribution(rng_);
   }
 
-  size_t RandomDataGraphGenerator::randomRelationshipTypeIndex()
+  size_t RandomDataGraphGeneratorFixedDegree::randomRelationshipTypeIndex()
   {
     std::uniform_int_distribution<size_t> distribution(0, config_.relationshipTypes.size() - 1);
     return distribution(rng_);
   }
 
-  void RandomDataGraphGenerator::createRelationships(
+  void RandomDataGraphGeneratorFixedDegree::createRelationships(
       k::InMemoryDatabase &db,
       const std::vector<k::DNodeId> &nodes)
   {
@@ -82,7 +82,7 @@ namespace evaluation
     }
   }
 
-  void RandomDataGraphGenerator::createOutgoingRelationships(
+  void RandomDataGraphGeneratorFixedDegree::createOutgoingRelationships(
       k::InMemoryDatabase &db,
       const std::vector<k::DNodeId> &nodes,
       size_t sourceIndex)
@@ -116,19 +116,19 @@ namespace evaluation
     }
   }
 
-  void populateDataGraph(
+  void populateDataGraphFixedDegree(
       k::InMemoryDatabase &db,
-      DataGraphGenConfig config)
+      DataGraphFixedDegreeGenConfig config)
   {
-    RandomDataGraphGenerator generator{std::move(config)};
+    RandomDataGraphGeneratorFixedDegree generator{std::move(config)};
     generator.populate(db);
   }
 
-  void populateDataGraph(k::InMemoryDatabase &db)
+  void populateDataGraphFixedDegree(k::InMemoryDatabase &db)
   {
-    populateDataGraph(
+    populateDataGraphFixedDegree(
         db,
-        DataGraphGenConfig{
+        DataGraphFixedDegreeGenConfig{
             .nodeCount = 100'000,
             .outgoingDegree = 4,
             .relationshipTypes =

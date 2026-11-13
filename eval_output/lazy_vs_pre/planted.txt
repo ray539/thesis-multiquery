@@ -1,0 +1,1566 @@
+queries: 100
+planted level-3 motifs: 2
+EagerExecutor::constructor
+Candidate space: 
+CandidateSpace {
+  candidateSets (12):
+    p30: size=67, values=[dr75, dr151, dr301, dr376, dr526, dr601, dr751, dr826, dr976, dr1051, dr1201, dr1276, dr1426, dr1501, dr1651, dr1726, dr1876, dr1951, dr2101, dr2176, ... +47]
+    p31: size=68, values=[dr74, dr150, dr226, dr300, dr451, dr525, dr676, dr750, dr901, dr975, dr1126, dr1200, dr1351, dr1425, dr1576, dr1650, dr1801, dr1875, dr2026, dr2100, ... +48]
+    p32: size=67, values=[dr73, dr149, dr225, dr375, dr450, dr600, dr675, dr825, dr900, dr1050, dr1125, dr1275, dr1350, dr1500, dr1575, dr1725, dr1800, dr1950, dr2025, dr2175, ... +47]
+    p33: size=67, values=[dr72, dr148, dr299, dr374, dr524, dr599, dr749, dr824, dr974, dr1049, dr1199, dr1274, dr1424, dr1499, dr1649, dr1724, dr1874, dr1949, dr2099, dr2174, ... +47]
+    p34: size=68, values=[dr71, dr147, dr223, dr298, dr448, dr523, dr673, dr748, dr898, dr973, dr1123, dr1198, dr1348, dr1423, dr1573, dr1648, dr1798, dr1873, dr2023, dr2098, ... +48]
+    p35: size=67, values=[dr70, dr146, dr222, dr372, dr447, dr597, dr672, dr822, dr897, dr1047, dr1122, dr1272, dr1347, dr1497, dr1572, dr1722, dr1797, dr1947, dr2022, dr2172, ... +47]
+    p36: size=67, values=[dr69, dr145, dr296, dr371, dr521, dr596, dr746, dr821, dr971, dr1046, dr1196, dr1271, dr1421, dr1496, dr1646, dr1721, dr1871, dr1946, dr2096, dr2171, ... +47]
+    p37: size=67, values=[dr68, dr144, dr295, dr370, dr520, dr595, dr745, dr820, dr970, dr1045, dr1195, dr1270, dr1420, dr1495, dr1645, dr1720, dr1870, dr1945, dr2095, dr2170, ... +47]
+    p38: size=35, values=[dr67, dr143, dr219, dr444, dr669, dr894, dr1119, dr1344, dr1569, dr1794, dr2019, dr2244, dr2469, dr2694, dr2919, dr3144, dr3369, dr3594, dr3819, dr4044, ... +15]
+    p39: size=35, values=[dr66, dr142, dr218, dr443, dr668, dr893, dr1118, dr1343, dr1568, dr1793, dr2018, dr2243, dr2468, dr2693, dr2918, dr3143, dr3368, dr3593, dr3818, dr4043, ... +15]
+    p40: size=35, values=[dr65, dr141, dr217, dr442, dr667, dr892, dr1117, dr1342, dr1567, dr1792, dr2017, dr2242, dr2467, dr2692, dr2917, dr3142, dr3367, dr3592, dr3817, dr4042, ... +15]
+    p41: size=2, values=[dr0, dr76]
+  queries (100):
+    query[0]:
+      QueryCandidateSpace {
+        gr0 -> p41
+        gr1 -> p40
+        gr2 -> p39
+        gr3 -> p38
+        gr4 -> p37
+        gr5 -> p36
+        gr6 -> p35
+        gr7 -> p34
+        gr8 -> p33
+        gr9 -> p32
+        gr10 -> p31
+        gr11 -> p30
+      }
+    query[1]:
+      QueryCandidateSpace {
+        gr12 -> p41
+        gr13 -> p40
+        gr14 -> p39
+        gr15 -> p38
+        gr16 -> p37
+        gr17 -> p36
+        gr18 -> p35
+        gr19 -> p34
+        gr20 -> p33
+        gr21 -> p32
+        gr22 -> p31
+        gr23 -> p30
+      }
+    query[2]:
+      QueryCandidateSpace {
+        gr24 -> p41
+        gr25 -> p40
+        gr26 -> p39
+        gr27 -> p38
+        gr28 -> p37
+        gr29 -> p36
+        gr30 -> p35
+        gr31 -> p34
+        gr32 -> p33
+        gr33 -> p32
+        gr34 -> p31
+        gr35 -> p30
+      }
+    query[3]:
+      QueryCandidateSpace {
+        gr36 -> p41
+        gr37 -> p40
+        gr38 -> p39
+        gr39 -> p38
+        gr40 -> p37
+        gr41 -> p36
+        gr42 -> p35
+        gr43 -> p34
+        gr44 -> p33
+        gr45 -> p32
+        gr46 -> p31
+        gr47 -> p30
+      }
+    query[4]:
+      QueryCandidateSpace {
+        gr48 -> p41
+        gr49 -> p40
+        gr50 -> p39
+        gr51 -> p38
+        gr52 -> p37
+        gr53 -> p36
+        gr54 -> p35
+        gr55 -> p34
+        gr56 -> p33
+        gr57 -> p32
+        gr58 -> p31
+        gr59 -> p30
+      }
+    query[5]:
+      QueryCandidateSpace {
+        gr60 -> p41
+        gr61 -> p40
+        gr62 -> p39
+        gr63 -> p38
+        gr64 -> p37
+        gr65 -> p36
+        gr66 -> p35
+        gr67 -> p34
+        gr68 -> p33
+        gr69 -> p32
+        gr70 -> p31
+        gr71 -> p30
+      }
+    query[6]:
+      QueryCandidateSpace {
+        gr72 -> p41
+        gr73 -> p40
+        gr74 -> p39
+        gr75 -> p38
+        gr76 -> p37
+        gr77 -> p36
+        gr78 -> p35
+        gr79 -> p34
+        gr80 -> p33
+        gr81 -> p32
+        gr82 -> p31
+        gr83 -> p30
+      }
+    query[7]:
+      QueryCandidateSpace {
+        gr84 -> p41
+        gr85 -> p40
+        gr86 -> p39
+        gr87 -> p38
+        gr88 -> p37
+        gr89 -> p36
+        gr90 -> p35
+        gr91 -> p34
+        gr92 -> p33
+        gr93 -> p32
+        gr94 -> p31
+        gr95 -> p30
+      }
+    query[8]:
+      QueryCandidateSpace {
+        gr96 -> p41
+        gr97 -> p40
+        gr98 -> p39
+        gr99 -> p38
+        gr100 -> p37
+        gr101 -> p36
+        gr102 -> p35
+        gr103 -> p34
+        gr104 -> p33
+        gr105 -> p32
+        gr106 -> p31
+        gr107 -> p30
+      }
+    query[9]:
+      QueryCandidateSpace {
+        gr108 -> p41
+        gr109 -> p40
+        gr110 -> p39
+        gr111 -> p38
+        gr112 -> p37
+        gr113 -> p36
+        gr114 -> p35
+        gr115 -> p34
+        gr116 -> p33
+        gr117 -> p32
+        gr118 -> p31
+        gr119 -> p30
+      }
+    query[10]:
+      QueryCandidateSpace {
+        gr120 -> p41
+        gr121 -> p40
+        gr122 -> p39
+        gr123 -> p38
+        gr124 -> p37
+        gr125 -> p36
+        gr126 -> p35
+        gr127 -> p34
+        gr128 -> p33
+        gr129 -> p32
+        gr130 -> p31
+        gr131 -> p30
+      }
+    query[11]:
+      QueryCandidateSpace {
+        gr132 -> p41
+        gr133 -> p40
+        gr134 -> p39
+        gr135 -> p38
+        gr136 -> p37
+        gr137 -> p36
+        gr138 -> p35
+        gr139 -> p34
+        gr140 -> p33
+        gr141 -> p32
+        gr142 -> p31
+        gr143 -> p30
+      }
+    query[12]:
+      QueryCandidateSpace {
+        gr144 -> p41
+        gr145 -> p40
+        gr146 -> p39
+        gr147 -> p38
+        gr148 -> p37
+        gr149 -> p36
+        gr150 -> p35
+        gr151 -> p34
+        gr152 -> p33
+        gr153 -> p32
+        gr154 -> p31
+        gr155 -> p30
+      }
+    query[13]:
+      QueryCandidateSpace {
+        gr156 -> p41
+        gr157 -> p40
+        gr158 -> p39
+        gr159 -> p38
+        gr160 -> p37
+        gr161 -> p36
+        gr162 -> p35
+        gr163 -> p34
+        gr164 -> p33
+        gr165 -> p32
+        gr166 -> p31
+        gr167 -> p30
+      }
+    query[14]:
+      QueryCandidateSpace {
+        gr168 -> p41
+        gr169 -> p40
+        gr170 -> p39
+        gr171 -> p38
+        gr172 -> p37
+        gr173 -> p36
+        gr174 -> p35
+        gr175 -> p34
+        gr176 -> p33
+        gr177 -> p32
+        gr178 -> p31
+        gr179 -> p30
+      }
+    query[15]:
+      QueryCandidateSpace {
+        gr180 -> p41
+        gr181 -> p40
+        gr182 -> p39
+        gr183 -> p38
+        gr184 -> p37
+        gr185 -> p36
+        gr186 -> p35
+        gr187 -> p34
+        gr188 -> p33
+        gr189 -> p32
+        gr190 -> p31
+        gr191 -> p30
+      }
+    query[16]:
+      QueryCandidateSpace {
+        gr192 -> p41
+        gr193 -> p40
+        gr194 -> p39
+        gr195 -> p38
+        gr196 -> p37
+        gr197 -> p36
+        gr198 -> p35
+        gr199 -> p34
+        gr200 -> p33
+        gr201 -> p32
+        gr202 -> p31
+        gr203 -> p30
+      }
+    query[17]:
+      QueryCandidateSpace {
+        gr204 -> p41
+        gr205 -> p40
+        gr206 -> p39
+        gr207 -> p38
+        gr208 -> p37
+        gr209 -> p36
+        gr210 -> p35
+        gr211 -> p34
+        gr212 -> p33
+        gr213 -> p32
+        gr214 -> p31
+        gr215 -> p30
+      }
+    query[18]:
+      QueryCandidateSpace {
+        gr216 -> p41
+        gr217 -> p40
+        gr218 -> p39
+        gr219 -> p38
+        gr220 -> p37
+        gr221 -> p36
+        gr222 -> p35
+        gr223 -> p34
+        gr224 -> p33
+        gr225 -> p32
+        gr226 -> p31
+        gr227 -> p30
+      }
+    query[19]:
+      QueryCandidateSpace {
+        gr228 -> p41
+        gr229 -> p40
+        gr230 -> p39
+        gr231 -> p38
+        gr232 -> p37
+        gr233 -> p36
+        gr234 -> p35
+        gr235 -> p34
+        gr236 -> p33
+        gr237 -> p32
+        gr238 -> p31
+        gr239 -> p30
+      }
+    query[20]:
+      QueryCandidateSpace {
+        gr240 -> p41
+        gr241 -> p40
+        gr242 -> p39
+        gr243 -> p38
+        gr244 -> p37
+        gr245 -> p36
+        gr246 -> p35
+        gr247 -> p34
+        gr248 -> p33
+        gr249 -> p32
+        gr250 -> p31
+        gr251 -> p30
+      }
+    query[21]:
+      QueryCandidateSpace {
+        gr252 -> p41
+        gr253 -> p40
+        gr254 -> p39
+        gr255 -> p38
+        gr256 -> p37
+        gr257 -> p36
+        gr258 -> p35
+        gr259 -> p34
+        gr260 -> p33
+        gr261 -> p32
+        gr262 -> p31
+        gr263 -> p30
+      }
+    query[22]:
+      QueryCandidateSpace {
+        gr264 -> p41
+        gr265 -> p40
+        gr266 -> p39
+        gr267 -> p38
+        gr268 -> p37
+        gr269 -> p36
+        gr270 -> p35
+        gr271 -> p34
+        gr272 -> p33
+        gr273 -> p32
+        gr274 -> p31
+        gr275 -> p30
+      }
+    query[23]:
+      QueryCandidateSpace {
+        gr276 -> p41
+        gr277 -> p40
+        gr278 -> p39
+        gr279 -> p38
+        gr280 -> p37
+        gr281 -> p36
+        gr282 -> p35
+        gr283 -> p34
+        gr284 -> p33
+        gr285 -> p32
+        gr286 -> p31
+        gr287 -> p30
+      }
+    query[24]:
+      QueryCandidateSpace {
+        gr288 -> p41
+        gr289 -> p40
+        gr290 -> p39
+        gr291 -> p38
+        gr292 -> p37
+        gr293 -> p36
+        gr294 -> p35
+        gr295 -> p34
+        gr296 -> p33
+        gr297 -> p32
+        gr298 -> p31
+        gr299 -> p30
+      }
+    query[25]:
+      QueryCandidateSpace {
+        gr300 -> p41
+        gr301 -> p40
+        gr302 -> p39
+        gr303 -> p38
+        gr304 -> p37
+        gr305 -> p36
+        gr306 -> p35
+        gr307 -> p34
+        gr308 -> p33
+        gr309 -> p32
+        gr310 -> p31
+        gr311 -> p30
+      }
+    query[26]:
+      QueryCandidateSpace {
+        gr312 -> p41
+        gr313 -> p40
+        gr314 -> p39
+        gr315 -> p38
+        gr316 -> p37
+        gr317 -> p36
+        gr318 -> p35
+        gr319 -> p34
+        gr320 -> p33
+        gr321 -> p32
+        gr322 -> p31
+        gr323 -> p30
+      }
+    query[27]:
+      QueryCandidateSpace {
+        gr324 -> p41
+        gr325 -> p40
+        gr326 -> p39
+        gr327 -> p38
+        gr328 -> p37
+        gr329 -> p36
+        gr330 -> p35
+        gr331 -> p34
+        gr332 -> p33
+        gr333 -> p32
+        gr334 -> p31
+        gr335 -> p30
+      }
+    query[28]:
+      QueryCandidateSpace {
+        gr336 -> p41
+        gr337 -> p40
+        gr338 -> p39
+        gr339 -> p38
+        gr340 -> p37
+        gr341 -> p36
+        gr342 -> p35
+        gr343 -> p34
+        gr344 -> p33
+        gr345 -> p32
+        gr346 -> p31
+        gr347 -> p30
+      }
+    query[29]:
+      QueryCandidateSpace {
+        gr348 -> p41
+        gr349 -> p40
+        gr350 -> p39
+        gr351 -> p38
+        gr352 -> p37
+        gr353 -> p36
+        gr354 -> p35
+        gr355 -> p34
+        gr356 -> p33
+        gr357 -> p32
+        gr358 -> p31
+        gr359 -> p30
+      }
+    query[30]:
+      QueryCandidateSpace {
+        gr360 -> p41
+        gr361 -> p40
+        gr362 -> p39
+        gr363 -> p38
+        gr364 -> p37
+        gr365 -> p36
+        gr366 -> p35
+        gr367 -> p34
+        gr368 -> p33
+        gr369 -> p32
+        gr370 -> p31
+        gr371 -> p30
+      }
+    query[31]:
+      QueryCandidateSpace {
+        gr372 -> p41
+        gr373 -> p40
+        gr374 -> p39
+        gr375 -> p38
+        gr376 -> p37
+        gr377 -> p36
+        gr378 -> p35
+        gr379 -> p34
+        gr380 -> p33
+        gr381 -> p32
+        gr382 -> p31
+        gr383 -> p30
+      }
+    query[32]:
+      QueryCandidateSpace {
+        gr384 -> p41
+        gr385 -> p40
+        gr386 -> p39
+        gr387 -> p38
+        gr388 -> p37
+        gr389 -> p36
+        gr390 -> p35
+        gr391 -> p34
+        gr392 -> p33
+        gr393 -> p32
+        gr394 -> p31
+        gr395 -> p30
+      }
+    query[33]:
+      QueryCandidateSpace {
+        gr396 -> p41
+        gr397 -> p40
+        gr398 -> p39
+        gr399 -> p38
+        gr400 -> p37
+        gr401 -> p36
+        gr402 -> p35
+        gr403 -> p34
+        gr404 -> p33
+        gr405 -> p32
+        gr406 -> p31
+        gr407 -> p30
+      }
+    query[34]:
+      QueryCandidateSpace {
+        gr408 -> p41
+        gr409 -> p40
+        gr410 -> p39
+        gr411 -> p38
+        gr412 -> p37
+        gr413 -> p36
+        gr414 -> p35
+        gr415 -> p34
+        gr416 -> p33
+        gr417 -> p32
+        gr418 -> p31
+        gr419 -> p30
+      }
+    query[35]:
+      QueryCandidateSpace {
+        gr420 -> p41
+        gr421 -> p40
+        gr422 -> p39
+        gr423 -> p38
+        gr424 -> p37
+        gr425 -> p36
+        gr426 -> p35
+        gr427 -> p34
+        gr428 -> p33
+        gr429 -> p32
+        gr430 -> p31
+        gr431 -> p30
+      }
+    query[36]:
+      QueryCandidateSpace {
+        gr432 -> p41
+        gr433 -> p40
+        gr434 -> p39
+        gr435 -> p38
+        gr436 -> p37
+        gr437 -> p36
+        gr438 -> p35
+        gr439 -> p34
+        gr440 -> p33
+        gr441 -> p32
+        gr442 -> p31
+        gr443 -> p30
+      }
+    query[37]:
+      QueryCandidateSpace {
+        gr444 -> p41
+        gr445 -> p40
+        gr446 -> p39
+        gr447 -> p38
+        gr448 -> p37
+        gr449 -> p36
+        gr450 -> p35
+        gr451 -> p34
+        gr452 -> p33
+        gr453 -> p32
+        gr454 -> p31
+        gr455 -> p30
+      }
+    query[38]:
+      QueryCandidateSpace {
+        gr456 -> p41
+        gr457 -> p40
+        gr458 -> p39
+        gr459 -> p38
+        gr460 -> p37
+        gr461 -> p36
+        gr462 -> p35
+        gr463 -> p34
+        gr464 -> p33
+        gr465 -> p32
+        gr466 -> p31
+        gr467 -> p30
+      }
+    query[39]:
+      QueryCandidateSpace {
+        gr468 -> p41
+        gr469 -> p40
+        gr470 -> p39
+        gr471 -> p38
+        gr472 -> p37
+        gr473 -> p36
+        gr474 -> p35
+        gr475 -> p34
+        gr476 -> p33
+        gr477 -> p32
+        gr478 -> p31
+        gr479 -> p30
+      }
+    query[40]:
+      QueryCandidateSpace {
+        gr480 -> p41
+        gr481 -> p40
+        gr482 -> p39
+        gr483 -> p38
+        gr484 -> p37
+        gr485 -> p36
+        gr486 -> p35
+        gr487 -> p34
+        gr488 -> p33
+        gr489 -> p32
+        gr490 -> p31
+        gr491 -> p30
+      }
+    query[41]:
+      QueryCandidateSpace {
+        gr492 -> p41
+        gr493 -> p40
+        gr494 -> p39
+        gr495 -> p38
+        gr496 -> p37
+        gr497 -> p36
+        gr498 -> p35
+        gr499 -> p34
+        gr500 -> p33
+        gr501 -> p32
+        gr502 -> p31
+        gr503 -> p30
+      }
+    query[42]:
+      QueryCandidateSpace {
+        gr504 -> p41
+        gr505 -> p40
+        gr506 -> p39
+        gr507 -> p38
+        gr508 -> p37
+        gr509 -> p36
+        gr510 -> p35
+        gr511 -> p34
+        gr512 -> p33
+        gr513 -> p32
+        gr514 -> p31
+        gr515 -> p30
+      }
+    query[43]:
+      QueryCandidateSpace {
+        gr516 -> p41
+        gr517 -> p40
+        gr518 -> p39
+        gr519 -> p38
+        gr520 -> p37
+        gr521 -> p36
+        gr522 -> p35
+        gr523 -> p34
+        gr524 -> p33
+        gr525 -> p32
+        gr526 -> p31
+        gr527 -> p30
+      }
+    query[44]:
+      QueryCandidateSpace {
+        gr528 -> p41
+        gr529 -> p40
+        gr530 -> p39
+        gr531 -> p38
+        gr532 -> p37
+        gr533 -> p36
+        gr534 -> p35
+        gr535 -> p34
+        gr536 -> p33
+        gr537 -> p32
+        gr538 -> p31
+        gr539 -> p30
+      }
+    query[45]:
+      QueryCandidateSpace {
+        gr540 -> p41
+        gr541 -> p40
+        gr542 -> p39
+        gr543 -> p38
+        gr544 -> p37
+        gr545 -> p36
+        gr546 -> p35
+        gr547 -> p34
+        gr548 -> p33
+        gr549 -> p32
+        gr550 -> p31
+        gr551 -> p30
+      }
+    query[46]:
+      QueryCandidateSpace {
+        gr552 -> p41
+        gr553 -> p40
+        gr554 -> p39
+        gr555 -> p38
+        gr556 -> p37
+        gr557 -> p36
+        gr558 -> p35
+        gr559 -> p34
+        gr560 -> p33
+        gr561 -> p32
+        gr562 -> p31
+        gr563 -> p30
+      }
+    query[47]:
+      QueryCandidateSpace {
+        gr564 -> p41
+        gr565 -> p40
+        gr566 -> p39
+        gr567 -> p38
+        gr568 -> p37
+        gr569 -> p36
+        gr570 -> p35
+        gr571 -> p34
+        gr572 -> p33
+        gr573 -> p32
+        gr574 -> p31
+        gr575 -> p30
+      }
+    query[48]:
+      QueryCandidateSpace {
+        gr576 -> p41
+        gr577 -> p40
+        gr578 -> p39
+        gr579 -> p38
+        gr580 -> p37
+        gr581 -> p36
+        gr582 -> p35
+        gr583 -> p34
+        gr584 -> p33
+        gr585 -> p32
+        gr586 -> p31
+        gr587 -> p30
+      }
+    query[49]:
+      QueryCandidateSpace {
+        gr588 -> p41
+        gr589 -> p40
+        gr590 -> p39
+        gr591 -> p38
+        gr592 -> p37
+        gr593 -> p36
+        gr594 -> p35
+        gr595 -> p34
+        gr596 -> p33
+        gr597 -> p32
+        gr598 -> p31
+        gr599 -> p30
+      }
+    query[50]:
+      QueryCandidateSpace {
+        gr600 -> p41
+        gr601 -> p40
+        gr602 -> p39
+        gr603 -> p38
+        gr604 -> p37
+        gr605 -> p36
+        gr606 -> p35
+        gr607 -> p34
+        gr608 -> p33
+        gr609 -> p32
+        gr610 -> p31
+        gr611 -> p30
+      }
+    query[51]:
+      QueryCandidateSpace {
+        gr612 -> p41
+        gr613 -> p40
+        gr614 -> p39
+        gr615 -> p38
+        gr616 -> p37
+        gr617 -> p36
+        gr618 -> p35
+        gr619 -> p34
+        gr620 -> p33
+        gr621 -> p32
+        gr622 -> p31
+        gr623 -> p30
+      }
+    query[52]:
+      QueryCandidateSpace {
+        gr624 -> p41
+        gr625 -> p40
+        gr626 -> p39
+        gr627 -> p38
+        gr628 -> p37
+        gr629 -> p36
+        gr630 -> p35
+        gr631 -> p34
+        gr632 -> p33
+        gr633 -> p32
+        gr634 -> p31
+        gr635 -> p30
+      }
+    query[53]:
+      QueryCandidateSpace {
+        gr636 -> p41
+        gr637 -> p40
+        gr638 -> p39
+        gr639 -> p38
+        gr640 -> p37
+        gr641 -> p36
+        gr642 -> p35
+        gr643 -> p34
+        gr644 -> p33
+        gr645 -> p32
+        gr646 -> p31
+        gr647 -> p30
+      }
+    query[54]:
+      QueryCandidateSpace {
+        gr648 -> p41
+        gr649 -> p40
+        gr650 -> p39
+        gr651 -> p38
+        gr652 -> p37
+        gr653 -> p36
+        gr654 -> p35
+        gr655 -> p34
+        gr656 -> p33
+        gr657 -> p32
+        gr658 -> p31
+        gr659 -> p30
+      }
+    query[55]:
+      QueryCandidateSpace {
+        gr660 -> p41
+        gr661 -> p40
+        gr662 -> p39
+        gr663 -> p38
+        gr664 -> p37
+        gr665 -> p36
+        gr666 -> p35
+        gr667 -> p34
+        gr668 -> p33
+        gr669 -> p32
+        gr670 -> p31
+        gr671 -> p30
+      }
+    query[56]:
+      QueryCandidateSpace {
+        gr672 -> p41
+        gr673 -> p40
+        gr674 -> p39
+        gr675 -> p38
+        gr676 -> p37
+        gr677 -> p36
+        gr678 -> p35
+        gr679 -> p34
+        gr680 -> p33
+        gr681 -> p32
+        gr682 -> p31
+        gr683 -> p30
+      }
+    query[57]:
+      QueryCandidateSpace {
+        gr684 -> p41
+        gr685 -> p40
+        gr686 -> p39
+        gr687 -> p38
+        gr688 -> p37
+        gr689 -> p36
+        gr690 -> p35
+        gr691 -> p34
+        gr692 -> p33
+        gr693 -> p32
+        gr694 -> p31
+        gr695 -> p30
+      }
+    query[58]:
+      QueryCandidateSpace {
+        gr696 -> p41
+        gr697 -> p40
+        gr698 -> p39
+        gr699 -> p38
+        gr700 -> p37
+        gr701 -> p36
+        gr702 -> p35
+        gr703 -> p34
+        gr704 -> p33
+        gr705 -> p32
+        gr706 -> p31
+        gr707 -> p30
+      }
+    query[59]:
+      QueryCandidateSpace {
+        gr708 -> p41
+        gr709 -> p40
+        gr710 -> p39
+        gr711 -> p38
+        gr712 -> p37
+        gr713 -> p36
+        gr714 -> p35
+        gr715 -> p34
+        gr716 -> p33
+        gr717 -> p32
+        gr718 -> p31
+        gr719 -> p30
+      }
+    query[60]:
+      QueryCandidateSpace {
+        gr720 -> p41
+        gr721 -> p40
+        gr722 -> p39
+        gr723 -> p38
+        gr724 -> p37
+        gr725 -> p36
+        gr726 -> p35
+        gr727 -> p34
+        gr728 -> p33
+        gr729 -> p32
+        gr730 -> p31
+        gr731 -> p30
+      }
+    query[61]:
+      QueryCandidateSpace {
+        gr732 -> p41
+        gr733 -> p40
+        gr734 -> p39
+        gr735 -> p38
+        gr736 -> p37
+        gr737 -> p36
+        gr738 -> p35
+        gr739 -> p34
+        gr740 -> p33
+        gr741 -> p32
+        gr742 -> p31
+        gr743 -> p30
+      }
+    query[62]:
+      QueryCandidateSpace {
+        gr744 -> p41
+        gr745 -> p40
+        gr746 -> p39
+        gr747 -> p38
+        gr748 -> p37
+        gr749 -> p36
+        gr750 -> p35
+        gr751 -> p34
+        gr752 -> p33
+        gr753 -> p32
+        gr754 -> p31
+        gr755 -> p30
+      }
+    query[63]:
+      QueryCandidateSpace {
+        gr756 -> p41
+        gr757 -> p40
+        gr758 -> p39
+        gr759 -> p38
+        gr760 -> p37
+        gr761 -> p36
+        gr762 -> p35
+        gr763 -> p34
+        gr764 -> p33
+        gr765 -> p32
+        gr766 -> p31
+        gr767 -> p30
+      }
+    query[64]:
+      QueryCandidateSpace {
+        gr768 -> p41
+        gr769 -> p40
+        gr770 -> p39
+        gr771 -> p38
+        gr772 -> p37
+        gr773 -> p36
+        gr774 -> p35
+        gr775 -> p34
+        gr776 -> p33
+        gr777 -> p32
+        gr778 -> p31
+        gr779 -> p30
+      }
+    query[65]:
+      QueryCandidateSpace {
+        gr780 -> p41
+        gr781 -> p40
+        gr782 -> p39
+        gr783 -> p38
+        gr784 -> p37
+        gr785 -> p36
+        gr786 -> p35
+        gr787 -> p34
+        gr788 -> p33
+        gr789 -> p32
+        gr790 -> p31
+        gr791 -> p30
+      }
+    query[66]:
+      QueryCandidateSpace {
+        gr792 -> p41
+        gr793 -> p40
+        gr794 -> p39
+        gr795 -> p38
+        gr796 -> p37
+        gr797 -> p36
+        gr798 -> p35
+        gr799 -> p34
+        gr800 -> p33
+        gr801 -> p32
+        gr802 -> p31
+        gr803 -> p30
+      }
+    query[67]:
+      QueryCandidateSpace {
+        gr804 -> p41
+        gr805 -> p40
+        gr806 -> p39
+        gr807 -> p38
+        gr808 -> p37
+        gr809 -> p36
+        gr810 -> p35
+        gr811 -> p34
+        gr812 -> p33
+        gr813 -> p32
+        gr814 -> p31
+        gr815 -> p30
+      }
+    query[68]:
+      QueryCandidateSpace {
+        gr816 -> p41
+        gr817 -> p40
+        gr818 -> p39
+        gr819 -> p38
+        gr820 -> p37
+        gr821 -> p36
+        gr822 -> p35
+        gr823 -> p34
+        gr824 -> p33
+        gr825 -> p32
+        gr826 -> p31
+        gr827 -> p30
+      }
+    query[69]:
+      QueryCandidateSpace {
+        gr828 -> p41
+        gr829 -> p40
+        gr830 -> p39
+        gr831 -> p38
+        gr832 -> p37
+        gr833 -> p36
+        gr834 -> p35
+        gr835 -> p34
+        gr836 -> p33
+        gr837 -> p32
+        gr838 -> p31
+        gr839 -> p30
+      }
+    query[70]:
+      QueryCandidateSpace {
+        gr840 -> p41
+        gr841 -> p40
+        gr842 -> p39
+        gr843 -> p38
+        gr844 -> p37
+        gr845 -> p36
+        gr846 -> p35
+        gr847 -> p34
+        gr848 -> p33
+        gr849 -> p32
+        gr850 -> p31
+        gr851 -> p30
+      }
+    query[71]:
+      QueryCandidateSpace {
+        gr852 -> p41
+        gr853 -> p40
+        gr854 -> p39
+        gr855 -> p38
+        gr856 -> p37
+        gr857 -> p36
+        gr858 -> p35
+        gr859 -> p34
+        gr860 -> p33
+        gr861 -> p32
+        gr862 -> p31
+        gr863 -> p30
+      }
+    query[72]:
+      QueryCandidateSpace {
+        gr864 -> p41
+        gr865 -> p40
+        gr866 -> p39
+        gr867 -> p38
+        gr868 -> p37
+        gr869 -> p36
+        gr870 -> p35
+        gr871 -> p34
+        gr872 -> p33
+        gr873 -> p32
+        gr874 -> p31
+        gr875 -> p30
+      }
+    query[73]:
+      QueryCandidateSpace {
+        gr876 -> p41
+        gr877 -> p40
+        gr878 -> p39
+        gr879 -> p38
+        gr880 -> p37
+        gr881 -> p36
+        gr882 -> p35
+        gr883 -> p34
+        gr884 -> p33
+        gr885 -> p32
+        gr886 -> p31
+        gr887 -> p30
+      }
+    query[74]:
+      QueryCandidateSpace {
+        gr888 -> p41
+        gr889 -> p40
+        gr890 -> p39
+        gr891 -> p38
+        gr892 -> p37
+        gr893 -> p36
+        gr894 -> p35
+        gr895 -> p34
+        gr896 -> p33
+        gr897 -> p32
+        gr898 -> p31
+        gr899 -> p30
+      }
+    query[75]:
+      QueryCandidateSpace {
+        gr900 -> p41
+        gr901 -> p40
+        gr902 -> p39
+        gr903 -> p38
+        gr904 -> p37
+        gr905 -> p36
+        gr906 -> p35
+        gr907 -> p34
+        gr908 -> p33
+        gr909 -> p32
+        gr910 -> p31
+        gr911 -> p30
+      }
+    query[76]:
+      QueryCandidateSpace {
+        gr912 -> p41
+        gr913 -> p40
+        gr914 -> p39
+        gr915 -> p38
+        gr916 -> p37
+        gr917 -> p36
+        gr918 -> p35
+        gr919 -> p34
+        gr920 -> p33
+        gr921 -> p32
+        gr922 -> p31
+        gr923 -> p30
+      }
+    query[77]:
+      QueryCandidateSpace {
+        gr924 -> p41
+        gr925 -> p40
+        gr926 -> p39
+        gr927 -> p38
+        gr928 -> p37
+        gr929 -> p36
+        gr930 -> p35
+        gr931 -> p34
+        gr932 -> p33
+        gr933 -> p32
+        gr934 -> p31
+        gr935 -> p30
+      }
+    query[78]:
+      QueryCandidateSpace {
+        gr936 -> p41
+        gr937 -> p40
+        gr938 -> p39
+        gr939 -> p38
+        gr940 -> p37
+        gr941 -> p36
+        gr942 -> p35
+        gr943 -> p34
+        gr944 -> p33
+        gr945 -> p32
+        gr946 -> p31
+        gr947 -> p30
+      }
+    query[79]:
+      QueryCandidateSpace {
+        gr948 -> p41
+        gr949 -> p40
+        gr950 -> p39
+        gr951 -> p38
+        gr952 -> p37
+        gr953 -> p36
+        gr954 -> p35
+        gr955 -> p34
+        gr956 -> p33
+        gr957 -> p32
+        gr958 -> p31
+        gr959 -> p30
+      }
+    query[80]:
+      QueryCandidateSpace {
+        gr960 -> p41
+        gr961 -> p40
+        gr962 -> p39
+        gr963 -> p38
+        gr964 -> p37
+        gr965 -> p36
+        gr966 -> p35
+        gr967 -> p34
+        gr968 -> p33
+        gr969 -> p32
+        gr970 -> p31
+        gr971 -> p30
+      }
+    query[81]:
+      QueryCandidateSpace {
+        gr972 -> p41
+        gr973 -> p40
+        gr974 -> p39
+        gr975 -> p38
+        gr976 -> p37
+        gr977 -> p36
+        gr978 -> p35
+        gr979 -> p34
+        gr980 -> p33
+        gr981 -> p32
+        gr982 -> p31
+        gr983 -> p30
+      }
+    query[82]:
+      QueryCandidateSpace {
+        gr984 -> p41
+        gr985 -> p40
+        gr986 -> p39
+        gr987 -> p38
+        gr988 -> p37
+        gr989 -> p36
+        gr990 -> p35
+        gr991 -> p34
+        gr992 -> p33
+        gr993 -> p32
+        gr994 -> p31
+        gr995 -> p30
+      }
+    query[83]:
+      QueryCandidateSpace {
+        gr996 -> p41
+        gr997 -> p40
+        gr998 -> p39
+        gr999 -> p38
+        gr1000 -> p37
+        gr1001 -> p36
+        gr1002 -> p35
+        gr1003 -> p34
+        gr1004 -> p33
+        gr1005 -> p32
+        gr1006 -> p31
+        gr1007 -> p30
+      }
+    query[84]:
+      QueryCandidateSpace {
+        gr1008 -> p41
+        gr1009 -> p40
+        gr1010 -> p39
+        gr1011 -> p38
+        gr1012 -> p37
+        gr1013 -> p36
+        gr1014 -> p35
+        gr1015 -> p34
+        gr1016 -> p33
+        gr1017 -> p32
+        gr1018 -> p31
+        gr1019 -> p30
+      }
+    query[85]:
+      QueryCandidateSpace {
+        gr1020 -> p41
+        gr1021 -> p40
+        gr1022 -> p39
+        gr1023 -> p38
+        gr1024 -> p37
+        gr1025 -> p36
+        gr1026 -> p35
+        gr1027 -> p34
+        gr1028 -> p33
+        gr1029 -> p32
+        gr1030 -> p31
+        gr1031 -> p30
+      }
+    query[86]:
+      QueryCandidateSpace {
+        gr1032 -> p41
+        gr1033 -> p40
+        gr1034 -> p39
+        gr1035 -> p38
+        gr1036 -> p37
+        gr1037 -> p36
+        gr1038 -> p35
+        gr1039 -> p34
+        gr1040 -> p33
+        gr1041 -> p32
+        gr1042 -> p31
+        gr1043 -> p30
+      }
+    query[87]:
+      QueryCandidateSpace {
+        gr1044 -> p41
+        gr1045 -> p40
+        gr1046 -> p39
+        gr1047 -> p38
+        gr1048 -> p37
+        gr1049 -> p36
+        gr1050 -> p35
+        gr1051 -> p34
+        gr1052 -> p33
+        gr1053 -> p32
+        gr1054 -> p31
+        gr1055 -> p30
+      }
+    query[88]:
+      QueryCandidateSpace {
+        gr1056 -> p41
+        gr1057 -> p40
+        gr1058 -> p39
+        gr1059 -> p38
+        gr1060 -> p37
+        gr1061 -> p36
+        gr1062 -> p35
+        gr1063 -> p34
+        gr1064 -> p33
+        gr1065 -> p32
+        gr1066 -> p31
+        gr1067 -> p30
+      }
+    query[89]:
+      QueryCandidateSpace {
+        gr1068 -> p41
+        gr1069 -> p40
+        gr1070 -> p39
+        gr1071 -> p38
+        gr1072 -> p37
+        gr1073 -> p36
+        gr1074 -> p35
+        gr1075 -> p34
+        gr1076 -> p33
+        gr1077 -> p32
+        gr1078 -> p31
+        gr1079 -> p30
+      }
+    query[90]:
+      QueryCandidateSpace {
+        gr1080 -> p41
+        gr1081 -> p40
+        gr1082 -> p39
+        gr1083 -> p38
+        gr1084 -> p37
+        gr1085 -> p36
+        gr1086 -> p35
+        gr1087 -> p34
+        gr1088 -> p33
+        gr1089 -> p32
+        gr1090 -> p31
+        gr1091 -> p30
+      }
+    query[91]:
+      QueryCandidateSpace {
+        gr1092 -> p41
+        gr1093 -> p40
+        gr1094 -> p39
+        gr1095 -> p38
+        gr1096 -> p37
+        gr1097 -> p36
+        gr1098 -> p35
+        gr1099 -> p34
+        gr1100 -> p33
+        gr1101 -> p32
+        gr1102 -> p31
+        gr1103 -> p30
+      }
+    query[92]:
+      QueryCandidateSpace {
+        gr1104 -> p41
+        gr1105 -> p40
+        gr1106 -> p39
+        gr1107 -> p38
+        gr1108 -> p37
+        gr1109 -> p36
+        gr1110 -> p35
+        gr1111 -> p34
+        gr1112 -> p33
+        gr1113 -> p32
+        gr1114 -> p31
+        gr1115 -> p30
+      }
+    query[93]:
+      QueryCandidateSpace {
+        gr1116 -> p41
+        gr1117 -> p40
+        gr1118 -> p39
+        gr1119 -> p38
+        gr1120 -> p37
+        gr1121 -> p36
+        gr1122 -> p35
+        gr1123 -> p34
+        gr1124 -> p33
+        gr1125 -> p32
+        gr1126 -> p31
+        gr1127 -> p30
+      }
+    query[94]:
+      QueryCandidateSpace {
+        gr1128 -> p41
+        gr1129 -> p40
+        gr1130 -> p39
+        gr1131 -> p38
+        gr1132 -> p37
+        gr1133 -> p36
+        gr1134 -> p35
+        gr1135 -> p34
+        gr1136 -> p33
+        gr1137 -> p32
+        gr1138 -> p31
+        gr1139 -> p30
+      }
+    query[95]:
+      QueryCandidateSpace {
+        gr1140 -> p41
+        gr1141 -> p40
+        gr1142 -> p39
+        gr1143 -> p38
+        gr1144 -> p37
+        gr1145 -> p36
+        gr1146 -> p35
+        gr1147 -> p34
+        gr1148 -> p33
+        gr1149 -> p32
+        gr1150 -> p31
+        gr1151 -> p30
+      }
+    query[96]:
+      QueryCandidateSpace {
+        gr1152 -> p41
+        gr1153 -> p40
+        gr1154 -> p39
+        gr1155 -> p38
+        gr1156 -> p37
+        gr1157 -> p36
+        gr1158 -> p35
+        gr1159 -> p34
+        gr1160 -> p33
+        gr1161 -> p32
+        gr1162 -> p31
+        gr1163 -> p30
+      }
+    query[97]:
+      QueryCandidateSpace {
+        gr1164 -> p41
+        gr1165 -> p40
+        gr1166 -> p39
+        gr1167 -> p38
+        gr1168 -> p37
+        gr1169 -> p36
+        gr1170 -> p35
+        gr1171 -> p34
+        gr1172 -> p33
+        gr1173 -> p32
+        gr1174 -> p31
+        gr1175 -> p30
+      }
+    query[98]:
+      QueryCandidateSpace {
+        gr1176 -> p41
+        gr1177 -> p40
+        gr1178 -> p39
+        gr1179 -> p38
+        gr1180 -> p37
+        gr1181 -> p36
+        gr1182 -> p35
+        gr1183 -> p34
+        gr1184 -> p33
+        gr1185 -> p32
+        gr1186 -> p31
+        gr1187 -> p30
+      }
+    query[99]:
+      QueryCandidateSpace {
+        gr1188 -> p41
+        gr1189 -> p40
+        gr1190 -> p39
+        gr1191 -> p38
+        gr1192 -> p37
+        gr1193 -> p36
+        gr1194 -> p35
+        gr1195 -> p34
+        gr1196 -> p33
+        gr1197 -> p32
+        gr1198 -> p31
+        gr1199 -> p30
+      }
+  candidateAdjacencies (30, edges=1042):
+    (p30 -> p33, StartEnd): sources=67, edges=67
+    (p31 -> p34, StartEnd): sources=68, edges=68
+    (p32 -> p35, StartEnd): sources=67, edges=67
+    (p33 -> p30, EndStart): sources=67, edges=67
+    (p33 -> p37, StartEnd): sources=67, edges=67
+    (p34 -> p31, EndStart): sources=68, edges=68
+    (p34 -> p39, StartEnd): sources=68, edges=35
+    (p35 -> p32, EndStart): sources=67, edges=67
+    (p35 -> p40, StartEnd): sources=67, edges=35
+    (p36 -> p37, StartStart): sources=67, edges=67
+    (p36 -> p41, StartEnd): sources=67, edges=2
+    (p37 -> p33, EndStart): sources=67, edges=67
+    (p37 -> p36, StartStart): sources=67, edges=67
+    (p37 -> p41, StartEnd): sources=67, edges=2
+    (p38 -> p39, StartStart): sources=35, edges=35
+    (p38 -> p40, StartStart): sources=35, edges=35
+    (p38 -> p41, StartStart): sources=35, edges=2
+    (p39 -> p34, EndStart): sources=35, edges=35
+    (p39 -> p38, StartStart): sources=35, edges=35
+    (p39 -> p40, StartStart): sources=35, edges=35
+    ... 10 more adjacency relations
+}
+
+================ comparison ================
+
+EAGER
+  precomputation:       57759 ms
+  enumeration:          113.02 ms
+  total:                57872 ms
+  candidates visited:   2400
+  recursive calls:      2500
+  matches:              200
+
+LAZY
+  enumeration:          66407.2 ms
+  candidates visited:   79368600
+  recursive calls:      2500
+  matches:              200
+
+RATIOS
+  eager/lazy candidates: 3.02387e-05
+  eager total/lazy time: 0.871471
+  eager enum/lazy time:  0.00170192
+
+CORRECTNESS
+  match counts equal:   true

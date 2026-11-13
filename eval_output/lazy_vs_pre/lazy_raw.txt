@@ -1,0 +1,182 @@
+# code
+    namespace k = kernel;
+    namespace ib = ir_builder;
+    namespace ex = execution;
+    namespace e = evaluation;
+
+    const size_t max_layer = 3;
+    auto runExperiment = [&](const std::string &name, ex::NeighborhoodCondition condition)
+    {
+        // ------------- KERNEL LAYER AND SAMPLING -----------
+        k::DatabaseMetrics metrics;
+        k::InMemoryDatabase db_(metrics);
+        k::CachedDatabaseAccess db(db_, metrics);
+
+        e::ChaoticDataGraphGenConfig genConfig{
+            .nodeCount = 100'000,
+            .relationshipCount = 400'000,
+            .relationshipTypes = {"A"},
+            .seed = 1};
+        e::populateChaoticDataGraph(db_, genConfig);
+
+        // std::cout << "kernel" << std::endl;
+        // std::cout << to_string(db_) << std::endl;
+
+        e::QueryGraphSamplerConfig qconfig{
+            .relationshipCount = 10,
+            .maxAttempts = 100,
+            .seed = 1,
+        };
+
+        auto query_graphs =
+            e::getQueryGraphsFrom(
+                db_,
+                qconfig,
+                1);
+
+        std::cout << "query graph: " << std::endl;
+        std::cout << query_graph::to_string(query_graphs[0]) << std::endl;
+
+        std::cout << name << ":" << std::endl;
+        ib::IRBuilder builder;
+        ib::BuildResult buildResult = builder.run(query_graphs, max_layer);
+
+        // std::cout << "predReg" << std::endl;
+        // std::cout << to_string(buildResult.predicateRegistry) << std::endl;
+
+        ex::LazyExecutorWithSB executor(db_, metrics, buildResult, ex::PredicateEvaluatorConfig{.neighborhoodCondition = condition}, 5000000);
+
+        auto start = std::chrono::steady_clock::now();
+        auto exResult = executor.executeQuery(0);
+        auto end = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        std::cout
+            << "enumeration time: "
+            << elapsed.count()
+            << " ms"
+            << std::endl;
+
+        std::cout << ex::to_string(exResult.metrics) << std::endl;
+
+        std::cout << "database metrics" << std::endl;
+        std::cout << k::to_string(metrics) << std::endl;
+    };
+    runExperiment("lazy executor test", ex::NeighborhoodCondition::ExistenceDegree);
+
+# output
+query graph: 
+QueryGraph {
+  patternNodes: [
+    PatternNode{variable=v0, inlinePredicates=[]}
+    PatternNode{variable=v1, inlinePredicates=[]}
+    PatternNode{variable=v3, inlinePredicates=[]}
+    PatternNode{variable=v5, inlinePredicates=[]}
+    PatternNode{variable=v7, inlinePredicates=[]}
+    PatternNode{variable=v9, inlinePredicates=[]}
+    PatternNode{variable=v11, inlinePredicates=[]}
+    PatternNode{variable=v13, inlinePredicates=[]}
+    PatternNode{variable=v15, inlinePredicates=[]}
+    PatternNode{variable=v17, inlinePredicates=[]}
+    PatternNode{variable=v19, inlinePredicates=[]}
+  ],
+  patternRelationships: [
+    PatternRelationship{variable=v2, start=v0, end=v1, direction=Outgoing, inlinePredicates=[HasRelType(v2, "A")]}
+    PatternRelationship{variable=v4, start=v0, end=v3, direction=Outgoing, inlinePredicates=[HasRelType(v4, "A")]}
+    PatternRelationship{variable=v6, start=v1, end=v5, direction=Outgoing, inlinePredicates=[HasRelType(v6, "A")]}
+    PatternRelationship{variable=v8, start=v0, end=v7, direction=Outgoing, inlinePredicates=[HasRelType(v8, "A")]}
+    PatternRelationship{variable=v10, start=v9, end=v1, direction=Outgoing, inlinePredicates=[HasRelType(v10, "A")]}
+    PatternRelationship{variable=v12, start=v11, end=v9, direction=Outgoing, inlinePredicates=[HasRelType(v12, "A")]}
+    PatternRelationship{variable=v14, start=v13, end=v5, direction=Outgoing, inlinePredicates=[HasRelType(v14, "A")]}
+    PatternRelationship{variable=v16, start=v15, end=v0, direction=Outgoing, inlinePredicates=[HasRelType(v16, "A")]}
+    PatternRelationship{variable=v18, start=v9, end=v17, direction=Outgoing, inlinePredicates=[HasRelType(v18, "A")]}
+    PatternRelationship{variable=v20, start=v19, end=v9, direction=Outgoing, inlinePredicates=[HasRelType(v20, "A")]}
+  ],
+  otherPredicates: [
+  ],
+  sharedBlocks: [
+  ]
+}
+lazy executor test:
+raw edge graph: 
+EdgeGraphRaw {
+  nodes: [
+    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p24}
+    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p22}
+    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v1, end=v5, signatureId=p23}
+    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p22}
+    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p21}
+    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p17}
+    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v13, end=v5, signatureId=p20}
+    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p19}
+    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v9, end=v17, signatureId=p18}
+    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v19, end=v9, signatureId=p17}
+  ],
+  adjacency: [
+    re0 -> [{type=StartStart, other=re1}, {type=EndStart, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
+    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
+    re2 -> [{type=StartEnd, other=re0}, {type=StartEnd, other=re4}, {type=EndEnd, other=re6}]
+    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
+    re4 -> [{type=EndEnd, other=re0}, {type=EndStart, other=re2}, {type=StartEnd, other=re5}, {type=StartStart, other=re8}, {type=StartEnd, other=re9}]
+    re5 -> [{type=EndStart, other=re4}, {type=EndStart, other=re8}, {type=EndEnd, other=re9}]
+    re6 -> [{type=EndEnd, other=re2}]
+    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
+    re8 -> [{type=StartStart, other=re4}, {type=StartEnd, other=re5}, {type=StartEnd, other=re9}]
+    re9 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}, {type=EndStart, other=re8}]
+  ]
+}
+block_occurrences: 
+classification of node: 
+re0: Outer{}
+re1: Outer{}
+re2: Outer{}
+re3: Outer{}
+re4: Outer{}
+re5: Outer{}
+re6: Outer{}
+re7: Outer{}
+re8: Outer{}
+re9: Outer{}
+elapsed since last: 60000 ms
+complete matches: 661030
+elapsed since last: 60000 ms
+complete matches: 1319691
+elapsed since last: 60000 ms
+complete matches: 1960008
+elapsed since last: 60000 ms
+complete matches: 2627039
+elapsed since last: 60000 ms
+complete matches: 3384027
+elapsed since last: 60000 ms
+complete matches: 4112086
+elapsed since last: 60000 ms
+complete matches: 4309928
+elapsed since last: 60000 ms
+complete matches: 4989507
+stopping due to limit
+enumeration time: 524317 ms
+QueryExecutionMetrics {
+  recursiveCallsAtDepth: [1, 36, 118, 505, 2069, 7338, 24048, 95944, 371703, 1371849, 5000000]
+  completeMatches: 5000000
+  regularCandidatesVisited: 9129907
+  regularRejectedByUniqueness: 1856277
+  regularRejectedByAdjacency: 0
+  regularRejectedByPredicate: 60817
+  sharedBlockRowsVisited: 0
+  sharedBlockRowsRejectedByOuterUniqueness: 0
+  matchingOrder: [ce0, ce4, ce2, ce7, ce3, ce1, ce9, ce8, ce5, ce6]
+}
+database metrics
+DatabaseMetrics {
+  database:
+    CursorMetrics {
+      allRelationshipCursorOpens: 2
+      allRelationshipCursorIncrements: 800000
+      adjacencyCursorOpens: 9426567
+      adjacencyCursorIncrements: 17659604
+    }
+  relationshipAttributeCache: lookups=400000, hits=0, misses=400000, hitRate=0.000
+  nodeAttributeCache: lookups=0, hits=0, misses=0
+  relationshipEndpointCache: lookups=43580321, hits=42785791, misses=794530, hitRate=0.982
+  predicateCache: lookups=17385505, hits=14517764, misses=2867741, hitRate=0.835
+}
