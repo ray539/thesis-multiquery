@@ -1,0 +1,25 @@
+queries: 100
+planted level-3 motifs: 2
+================ comparison ================
+
+EAGER
+  precomputation:       57759 ms
+  enumeration:          113.02 ms
+  total:                57872 ms
+  candidates visited:   2400
+  recursive calls:      2500
+  matches:              200
+
+LAZY
+  enumeration:          66407.2 ms
+  candidates visited:   79368600
+  recursive calls:      2500
+  matches:              200
+
+RATIOS
+  eager/lazy candidates: 3.02387e-05
+  eager total/lazy time: 0.871471
+  eager enum/lazy time:  0.00170192
+
+CORRECTNESS
+  match counts equal:   true

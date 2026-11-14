@@ -21,9 +21,6 @@ namespace execution
                 .build(options_.signatureLevel)},
         limit_{limit}
   {
-    std::cout << "EagerExecutor::constructor" << std::endl;
-    std::cout << "Candidate space: " << std::endl;
-    std::cout << to_string(candidateSpace_) << std::endl;
   }
 
   // ---------------------------------------------------------------------------

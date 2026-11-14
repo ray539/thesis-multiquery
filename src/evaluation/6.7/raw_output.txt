@@ -1,0 +1,161 @@
+Running WITH shared blocks...
+Running WITHOUT shared blocks...
+elapsed since last: 60825 ms
+complete matches: 551
+elapsed since last: 67853 ms
+complete matches: 1376
+elapsed since last: 63714 ms
+complete matches: 2126
+elapsed since last: 64330 ms
+complete matches: 2876
+elapsed since last: 61200 ms
+complete matches: 3626
+elapsed since last: 64076 ms
+complete matches: 4501
+elapsed since last: 60721 ms
+complete matches: 5251
+elapsed since last: 61380 ms
+complete matches: 6001
+elapsed since last: 62409 ms
+complete matches: 6751
+elapsed since last: 64570 ms
+complete matches: 7626
+elapsed since last: 62508 ms
+complete matches: 8376
+elapsed since last: 62039 ms
+complete matches: 9126
+elapsed since last: 62256 ms
+complete matches: 9876
+elapsed since last: 66556 ms
+complete matches: 10751
+elapsed since last: 64648 ms
+complete matches: 11501
+elapsed since last: 63979 ms
+complete matches: 12251
+elapsed since last: 64438 ms
+complete matches: 13001
+elapsed since last: 69112 ms
+complete matches: 13876
+elapsed since last: 65493 ms
+complete matches: 14626
+elapsed since last: 64829 ms
+complete matches: 15376
+elapsed since last: 64795 ms
+complete matches: 16126
+elapsed since last: 66701 ms
+complete matches: 17001
+elapsed since last: 63559 ms
+complete matches: 17751
+elapsed since last: 63513 ms
+complete matches: 18501
+elapsed since last: 63482 ms
+complete matches: 19251
+elapsed since last: 66648 ms
+complete matches: 20126
+elapsed since last: 63323 ms
+complete matches: 20876
+elapsed since last: 63818 ms
+complete matches: 21626
+elapsed since last: 62791 ms
+complete matches: 22376
+elapsed since last: 66953 ms
+complete matches: 23251
+elapsed since last: 63598 ms
+complete matches: 24001
+elapsed since last: 65118 ms
+complete matches: 24751
+elapsed since last: 64834 ms
+complete matches: 25501
+elapsed since last: 68392 ms
+complete matches: 26376
+elapsed since last: 64200 ms
+complete matches: 27126
+elapsed since last: 63991 ms
+complete matches: 27876
+elapsed since last: 64695 ms
+complete matches: 28626
+elapsed since last: 60000 ms
+complete matches: 29449
+
+
+================ SHARED BLOCK EVALUATION ================
+centralCount:          2
+blockCount:            4
+embeddingsPerBlock:    5
+noiseDegree:           0
+hierarchical level:    0
+
+WITHOUT SHARED BLOCKS
+--------------------------------------------------
+time:                         2487083.154 ms
+matches:                      30000
+
+Candidate visits
+  outer candidates:            74144080
+  shared-block candidates:     0
+  total candidates:            74144080
+
+Recursive calls
+  outer recursive calls:       51514865
+  shared-block recursive calls: 0
+  total recursive calls:       51514865
+
+Shared-block outer usage
+  rows visited:                0
+  rows rejected by uniqueness: 0
+
+Shared-block cache
+  iterator creations:          0
+  cache entries created:       0
+  row requests:                0
+  cached rows returned:        0
+  rows produced:               0
+  producer resumptions:        0
+  producer exhaustions:        0
+
+Shared-block DFS rejection
+  rejected by uniqueness:      0
+  rejected by adjacency:       0
+  rejected by predicate:       0
+
+WITH SHARED BLOCKS
+--------------------------------------------------
+time:                         5649.072 ms
+matches:                      30000
+
+Candidate visits
+  outer candidates:            4008
+  shared-block candidates:     2632
+  total candidates:            6640
+
+Recursive calls
+  outer recursive calls:       39329
+  shared-block recursive calls: 1992
+  total recursive calls:       41321
+
+Shared-block outer usage
+  rows visited:                37440
+  rows rejected by uniqueness: 0
+
+Shared-block cache
+  iterator creations:          8448
+  cache entries created:       72
+  row requests:                45888
+  cached rows returned:        37280
+  rows produced:               160
+  producer resumptions:        232
+  producer exhaustions:        72
+
+Shared-block DFS rejection
+  rejected by uniqueness:      72
+  rejected by adjacency:       640
+  rejected by predicate:       0
+
+COMPARISON
+--------------------------------------------------
+match counts equal:            true
+runtime speedup:               440.264x
+shared/normal candidate ratio: 0.000
+candidate reduction:           99.991%
+shared/normal DFS call ratio:  0.001
+cached-row return ratio:       81.241%

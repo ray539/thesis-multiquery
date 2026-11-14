@@ -4,15 +4,15 @@
 
 namespace evaluation
 {
-  PlantedMotifGenerator::PlantedMotifGenerator(
-      PlantedMotifGenConfig config)
+  NoisyDatagraphGenerator::NoisyDatagraphGenerator(
+      NoisyDatagraphGenConfig config)
       : config_{std::move(config)},
         rng_{config_.seed}
   {
     validateConfig();
   }
 
-  void PlantedMotifGenerator::validateConfig() const
+  void NoisyDatagraphGenerator::validateConfig() const
   {
     if (config_.nodeCount < 2)
     {
@@ -36,7 +36,7 @@ namespace evaluation
     }
   }
 
-  void PlantedMotifGenerator::createNodes(
+  void NoisyDatagraphGenerator::createNodes(
       k::InMemoryDatabase &db)
   {
     nodes_.reserve(config_.nodeCount);
@@ -47,7 +47,7 @@ namespace evaluation
     }
   }
 
-  k::DNodeId PlantedMotifGenerator::allocateNode()
+  k::DNodeId NoisyDatagraphGenerator::allocateNode()
   {
     if (nextUnusedNode_ >= nodes_.size())
     {
@@ -58,7 +58,7 @@ namespace evaluation
     return nodes_[nextUnusedNode_++];
   }
 
-  k::DNodeId PlantedMotifGenerator::randomNode()
+  k::DNodeId NoisyDatagraphGenerator::randomNode()
   {
     std::uniform_int_distribution<size_t> dist(
         0,
@@ -67,7 +67,7 @@ namespace evaluation
     return nodes_[dist(rng_)];
   }
 
-  k::DNodeId PlantedMotifGenerator::randomNodeOtherThan(
+  k::DNodeId NoisyDatagraphGenerator::randomNodeOtherThan(
       k::DNodeId node)
   {
     while (true)
@@ -80,7 +80,7 @@ namespace evaluation
     }
   }
 
-  void PlantedMotifGenerator::addNoise(
+  void NoisyDatagraphGenerator::addNoise(
       k::InMemoryDatabase &db,
       k::DNodeId node)
   {
@@ -100,7 +100,7 @@ namespace evaluation
     }
   }
 
-  void PlantedMotifGenerator::addBackgroundNoise(k::InMemoryDatabase &db)
+  void NoisyDatagraphGenerator::addBackgroundNoise(k::InMemoryDatabase &db)
   {
     const std::string &noiseType =
         config_.relationshipTypes.back();
@@ -121,7 +121,7 @@ namespace evaluation
     }
   }
 
-  PlantedMotifGenResult PlantedMotifGenerator::populate(
+  NoisyDatagraphGenResult NoisyDatagraphGenerator::populate(
       k::InMemoryDatabase &db)
   {
     createNodes(db);
@@ -135,7 +135,7 @@ namespace evaluation
     const std::string &G = config_.relationshipTypes[6];
     const std::string &H = config_.relationshipTypes[7];
 
-    PlantedMotifGenResult result;
+    NoisyDatagraphGenResult result;
 
     result.centralRelationships.reserve(config_.centralCandidateCount);
 
@@ -198,8 +198,7 @@ namespace evaluation
         if (!fullLevel1 && missingLevel1 == index)
           return;
 
-        end =
-            allocateNode();
+        end = allocateNode();
 
         db.addRelationship(
             start,
@@ -313,7 +312,7 @@ namespace evaluation
     return result;
   }
 
-  qg::QueryGraph PlantedMotifGenerator::buildQueryGraph() const
+  qg::QueryGraph NoisyDatagraphGenerator::buildQueryGraph() const
   {
     qg::QueryGraph graph;
 
@@ -353,8 +352,7 @@ namespace evaluation
           graph.expressions.add(
               qg::Expression{
                   .type = qg::ValueType::Bool,
-                  .data = qg::HasRelType(variableExpression, type)
-              });
+                  .data = qg::HasRelType(variableExpression, type)});
 
       graph.patternRelationships.push_back(
           qg::PatternRelationship{
@@ -423,16 +421,14 @@ namespace evaluation
     return graph;
   }
 
-  PlantedMotifGenResult populatePlantedMotifGraph(
+  NoisyDatagraphGenResult populatePlantedMotifGraph(
       k::InMemoryDatabase &db,
-      PlantedMotifGenConfig config)
+      NoisyDatagraphGenConfig config)
   {
-    PlantedMotifGenerator generator{
+    NoisyDatagraphGenerator generator{
         std::move(config)};
 
     return generator.populate(db);
   }
-
- 
 
 } // namespace evaluation

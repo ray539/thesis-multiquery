@@ -120,6 +120,11 @@ target_link_libraries(main
 
 # --------------------- evaluation executable
 add_executable(evaluation
+  evaluation/6.3/Test.cpp
+  evaluation/6.4/Test.cpp
+  evaluation/6.5/Test.cpp
+  evaluation/6.6/Test.cpp
+  evaluation/6.7/Test.cpp
   evaluation/Main.cpp
   evaluation/DataGraphGen.cpp
   evaluation/QueryGraphGen.cpp

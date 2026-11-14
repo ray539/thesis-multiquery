@@ -140,7 +140,7 @@ namespace evaluation
   namespace k = kernel;
   namespace qg = query_graph;
 
-  struct PlantedMotifGenConfig
+  struct NoisyDatagraphGenConfig
   {
     size_t nodeCount = 100'000;
 
@@ -189,7 +189,7 @@ namespace evaluation
     uint64_t seed = 1;
   };
 
-  struct PlantedMotifGenResult
+  struct NoisyDatagraphGenResult
   {
     // All A relationships created as potential central candidates.
     std::vector<k::DRelId> centralRelationships;
@@ -201,15 +201,15 @@ namespace evaluation
     std::vector<qg::QueryGraph> queryGraphs;
   };
 
-  class PlantedMotifGenerator
+  class NoisyDatagraphGenerator
   {
   public:
-    explicit PlantedMotifGenerator(PlantedMotifGenConfig config);
+    explicit NoisyDatagraphGenerator(NoisyDatagraphGenConfig config);
 
-    PlantedMotifGenResult populate(k::InMemoryDatabase &db);
+    NoisyDatagraphGenResult populate(k::InMemoryDatabase &db);
 
   private:
-    PlantedMotifGenConfig config_;
+    NoisyDatagraphGenConfig config_;
     std::mt19937_64 rng_;
 
     std::vector<k::DNodeId> nodes_;
@@ -235,9 +235,9 @@ namespace evaluation
     qg::QueryGraph buildQueryGraph() const;
   };
 
-  PlantedMotifGenResult populatePlantedMotifGraph(
+  NoisyDatagraphGenResult populatePlantedMotifGraph(
       k::InMemoryDatabase &db,
-      PlantedMotifGenConfig config = {});
+      NoisyDatagraphGenConfig config = {});
 
   // ---------------------- QUERY GRAPH SAMPLER -----------------
   struct QueryGraphSamplerConfig
@@ -332,7 +332,6 @@ namespace evaluation
 
   std::vector<qg::QueryGraph> getQueryGraphsFrom(k::InMemoryDatabase &db, QueryGraphSamplerConfig config, size_t count);
 
-
   struct SharedBlockStressConfig
   {
     size_t centralCount = 10;
@@ -376,5 +375,20 @@ namespace evaluation
 
   qg::QueryGraph buildQG(bool sharedBlocks);
   SharedBlockStressResult populateSharedBlockStressGraph(k::InMemoryDatabase &db, SharedBlockStressConfig config = {});
+
+
+  // ---------------------- EVALUTION TEST FUNCTIONS -------------
+  // 6.3
+  void candidate_set_evaluation_layers();
+  // 6.4
+  void hp_neighbor_condition();
+  // 6.5
+  void ordering_techniques();
+  // 6.6
+  void cdg_lazy();
+  void cdg_precomp();
+  void noise_ddg_eager_lazy();
+  // 6.7
+  void shared_block_eval();
 
 } // namespace evaluation

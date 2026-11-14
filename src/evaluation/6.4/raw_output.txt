@@ -1,44 +1,4 @@
 existence:
-raw edge graph: 
-EdgeGraphRaw {
-  nodes: [
-    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p30}
-    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p29}
-    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v5, end=v1, signatureId=p28}
-    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p27}
-    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p26}
-    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p23}
-    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v5, end=v13, signatureId=p25}
-    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p24}
-    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v17, end=v9, signatureId=p23}
-    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v13, end=v19, signatureId=p22}
-  ],
-  adjacency: [
-    re0 -> [{type=StartStart, other=re1}, {type=EndEnd, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
-    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
-    re2 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re4}, {type=StartStart, other=re6}]
-    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
-    re4 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re2}, {type=StartEnd, other=re5}, {type=StartEnd, other=re8}]
-    re5 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re8}]
-    re6 -> [{type=StartStart, other=re2}, {type=EndStart, other=re9}]
-    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
-    re8 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}]
-    re9 -> [{type=StartEnd, other=re6}]
-  ]
-}
-block_occurrences: 
-classification of node: 
-re0: Outer{}
-re1: Outer{}
-re2: Outer{}
-re3: Outer{}
-re4: Outer{}
-re5: Outer{}
-re6: Outer{}
-re7: Outer{}
-re8: Outer{}
-re9: Outer{}
-candidate space build time: 39679 ms
 CandidateSpace {
   candidateSets (9):
     p22: size=23786, values=[dr20, dr65, dr67, dr70, dr80, dr81, dr82, dr109, dr140, dr142, dr150, dr151, dr161, dr171, dr179, dr195, dr204, dr275, dr278, dr335, ... +23766]
@@ -88,46 +48,6 @@ CandidateSpace {
     ... 5 more adjacency relations
 }
 existence degree:
-raw edge graph: 
-EdgeGraphRaw {
-  nodes: [
-    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p30}
-    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p29}
-    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v5, end=v1, signatureId=p28}
-    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p27}
-    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p26}
-    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p23}
-    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v5, end=v13, signatureId=p25}
-    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p24}
-    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v17, end=v9, signatureId=p23}
-    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v13, end=v19, signatureId=p22}
-  ],
-  adjacency: [
-    re0 -> [{type=StartStart, other=re1}, {type=EndEnd, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
-    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
-    re2 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re4}, {type=StartStart, other=re6}]
-    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
-    re4 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re2}, {type=StartEnd, other=re5}, {type=StartEnd, other=re8}]
-    re5 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re8}]
-    re6 -> [{type=StartStart, other=re2}, {type=EndStart, other=re9}]
-    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
-    re8 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}]
-    re9 -> [{type=StartEnd, other=re6}]
-  ]
-}
-block_occurrences: 
-classification of node: 
-re0: Outer{}
-re1: Outer{}
-re2: Outer{}
-re3: Outer{}
-re4: Outer{}
-re5: Outer{}
-re6: Outer{}
-re7: Outer{}
-re8: Outer{}
-re9: Outer{}
-candidate space build time: 36853 ms
 CandidateSpace {
   candidateSets (9):
     p22: size=23786, values=[dr20, dr65, dr67, dr70, dr80, dr81, dr82, dr109, dr140, dr142, dr150, dr151, dr161, dr171, dr179, dr195, dr204, dr275, dr278, dr335, ... +23766]
@@ -177,46 +97,6 @@ CandidateSpace {
     ... 5 more adjacency relations
 }
 bipartite matching:
-raw edge graph: 
-EdgeGraphRaw {
-  nodes: [
-    re0: PatternRelationshipIR{global_rel_id=gr0, lv=v2, start=v0, end=v1, signatureId=p30}
-    re1: PatternRelationshipIR{global_rel_id=gr1, lv=v4, start=v0, end=v3, signatureId=p29}
-    re2: PatternRelationshipIR{global_rel_id=gr2, lv=v6, start=v5, end=v1, signatureId=p28}
-    re3: PatternRelationshipIR{global_rel_id=gr3, lv=v8, start=v0, end=v7, signatureId=p27}
-    re4: PatternRelationshipIR{global_rel_id=gr4, lv=v10, start=v9, end=v1, signatureId=p26}
-    re5: PatternRelationshipIR{global_rel_id=gr5, lv=v12, start=v11, end=v9, signatureId=p23}
-    re6: PatternRelationshipIR{global_rel_id=gr6, lv=v14, start=v5, end=v13, signatureId=p25}
-    re7: PatternRelationshipIR{global_rel_id=gr7, lv=v16, start=v15, end=v0, signatureId=p24}
-    re8: PatternRelationshipIR{global_rel_id=gr8, lv=v18, start=v17, end=v9, signatureId=p23}
-    re9: PatternRelationshipIR{global_rel_id=gr9, lv=v20, start=v13, end=v19, signatureId=p22}
-  ],
-  adjacency: [
-    re0 -> [{type=StartStart, other=re1}, {type=EndEnd, other=re2}, {type=StartStart, other=re3}, {type=EndEnd, other=re4}, {type=StartEnd, other=re7}]
-    re1 -> [{type=StartStart, other=re0}, {type=StartStart, other=re3}, {type=StartEnd, other=re7}]
-    re2 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re4}, {type=StartStart, other=re6}]
-    re3 -> [{type=StartStart, other=re0}, {type=StartStart, other=re1}, {type=StartEnd, other=re7}]
-    re4 -> [{type=EndEnd, other=re0}, {type=EndEnd, other=re2}, {type=StartEnd, other=re5}, {type=StartEnd, other=re8}]
-    re5 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re8}]
-    re6 -> [{type=StartStart, other=re2}, {type=EndStart, other=re9}]
-    re7 -> [{type=EndStart, other=re0}, {type=EndStart, other=re1}, {type=EndStart, other=re3}]
-    re8 -> [{type=EndStart, other=re4}, {type=EndEnd, other=re5}]
-    re9 -> [{type=StartEnd, other=re6}]
-  ]
-}
-block_occurrences: 
-classification of node: 
-re0: Outer{}
-re1: Outer{}
-re2: Outer{}
-re3: Outer{}
-re4: Outer{}
-re5: Outer{}
-re6: Outer{}
-re7: Outer{}
-re8: Outer{}
-re9: Outer{}
-candidate space build time: 43742 ms
 CandidateSpace {
   candidateSets (9):
     p22: size=23786, values=[dr20, dr65, dr67, dr70, dr80, dr81, dr82, dr109, dr140, dr142, dr150, dr151, dr161, dr171, dr179, dr195, dr204, dr275, dr278, dr335, ... +23766]

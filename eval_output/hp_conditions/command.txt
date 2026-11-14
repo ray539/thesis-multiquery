@@ -1,7 +1,0 @@
-run src/evaluation/Main.cpp::candidate_set_evaluation_layers();
-- num_nodes = 50000
-- outgoing_degree = 8
-
-and
-- num_nodes = 100000
-- outgoing_degree = 4

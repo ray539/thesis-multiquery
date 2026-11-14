@@ -1,5 +1,3 @@
-#pragma once
-
 #include <algorithm>
 #include <cstdint>
 #include <random>
@@ -9,7 +7,6 @@
 #include <common/Evaluation.hpp>
 #include <common/QueryGraph.hpp>
 #include <common/Kernel.hpp>
-
 
 namespace evaluation
 {

@@ -1,0 +1,52 @@
+connected greedy:
+done building scs, time: 95690 ms 
+elapsed since last: 60000 ms
+complete matches: 1479888
+elapsed since last: 60000 ms
+complete matches: 3213508
+elapsed since last: 89434 ms
+complete matches: 4194305
+stopping due to limit
+enumeration time: 234999 ms
+lazy greedy:
+done building scs, time: 98814 ms 
+elapsed since last: 60003 ms
+complete matches: 315838
+elapsed since last: 60613 ms
+complete matches: 884367
+elapsed since last: 60000 ms
+complete matches: 1585264
+elapsed since last: 75174 ms
+complete matches: 2097153
+elapsed since last: 60000 ms
+complete matches: 2630966
+elapsed since last: 60000 ms
+complete matches: 3313882
+elapsed since last: 60000 ms
+complete matches: 4158511
+elapsed since last: 137025 ms
+complete matches: 4194305
+stopping due to limit
+enumeration time: 625208 ms
+smallest |C| first:
+done building scs, time: 102149 ms 
+elapsed since last: 60000 ms
+complete matches: 778209
+elapsed since last: 60004 ms
+complete matches: 1446877
+elapsed since last: 72759 ms
+complete matches: 1787901
+elapsed since last: 95834 ms
+complete matches: 2097153
+elapsed since last: 65724 ms
+complete matches: 2549202
+elapsed since last: 68526 ms
+complete matches: 3016586
+elapsed since last: 60000 ms
+complete matches: 3543528
+elapsed since last: 270869 ms
+complete matches: 4194305
+elapsed since last: 60000 ms
+complete matches: 4688773
+stopping due to limit
+enumeration time: 844637 ms

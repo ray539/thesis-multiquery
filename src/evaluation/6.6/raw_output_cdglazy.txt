@@ -1,0 +1,74 @@
+lazy executor, limit = 8000000:
+elapsed since last: 60000 ms
+complete matches: 470185
+elapsed since last: 60000 ms
+complete matches: 905848
+elapsed since last: 60000 ms
+complete matches: 1202362
+elapsed since last: 60000 ms
+complete matches: 1550986
+elapsed since last: 60000 ms
+complete matches: 1901451
+elapsed since last: 74430 ms
+complete matches: 2097154
+elapsed since last: 60028 ms
+complete matches: 2285169
+elapsed since last: 60389 ms
+complete matches: 2450672
+elapsed since last: 60018 ms
+complete matches: 2687538
+elapsed since last: 60042 ms
+complete matches: 3015586
+elapsed since last: 60001 ms
+complete matches: 3411854
+elapsed since last: 60004 ms
+complete matches: 3651580
+elapsed since last: 60000 ms
+complete matches: 3913526
+elapsed since last: 299106 ms
+complete matches: 4194306
+elapsed since last: 60000 ms
+complete matches: 4258341
+elapsed since last: 60000 ms
+complete matches: 4548949
+elapsed since last: 60001 ms
+complete matches: 4882015
+elapsed since last: 60000 ms
+complete matches: 5255135
+elapsed since last: 60000 ms
+complete matches: 5793466
+elapsed since last: 60000 ms
+complete matches: 6431902
+elapsed since last: 60000 ms
+complete matches: 6812243
+elapsed since last: 60000 ms
+complete matches: 7001213
+elapsed since last: 60000 ms
+complete matches: 7402309
+stopping due to limit
+enumeration time: 1756000 ms
+QueryExecutionMetrics {
+  recursiveCallsAtDepth: [1, 36, 121, 528, 2206, 8301, 29823, 125002, 494312, 1902660, 8000000]
+  completeMatches: 8000000
+  regularCandidatesVisited: 13503828
+  regularRejectedByUniqueness: 2540818
+  regularRejectedByAdjacency: 0
+  regularRejectedByPredicate: 60817
+  sharedBlockRowsVisited: 0
+  sharedBlockRowsRejectedByOuterUniqueness: 0
+  matchingOrder: [ce0, ce4, ce2, ce7, ce3, ce1, ce9, ce8, ce5, ce6]
+}
+database metrics
+DatabaseMetrics {
+  database:
+    CursorMetrics {
+      allRelationshipCursorOpens: 2
+      allRelationshipCursorIncrements: 800000
+      adjacencyCursorOpens: 10116113
+      adjacencyCursorIncrements: 22033698
+    }
+  relationshipAttributeCache: lookups=400000, hits=0, misses=400000, hitRate=0.000
+  nodeAttributeCache: lookups=0, hits=0, misses=0
+  relationshipEndpointCache: lookups=54042443, hits=53247913, misses=794530, hitRate=0.985
+  predicateCache: lookups=21075122, hits=18207311, misses=2867811, hitRate=0.864
+}
